@@ -1,6 +1,6 @@
 import { createServer, AddressInfo, Server } from 'node:net';
-import { http } from '../../../test/helpers/http';
 import { createApp } from '../main';
+import { req } from '../../../test/helpers/http';
 import { makeRepo, TempRepo } from '../../../test/helpers/temp-repo';
 
 describe('server security', () => {
@@ -27,37 +27,41 @@ describe('server security', () => {
     expect(ctx.url).toBe(`${base}/?t=${ctx.token}`);
   });
   it('rejects a foreign Host with 421', async () => {
-    await http(base).get('/api/health').set('Host', 'evil.example:80').set('Cookie', cookie()).expect(421);
+    expect((await req(base, '/api/health', { headers: { Host: 'evil.example:80', Cookie: cookie() } })).status).toBe(421);
   });
   it('rejects a foreign Origin with 403', async () => {
-    await http(base).get('/api/health').set('Origin', 'http://evil.example').set('Cookie', cookie()).expect(403);
+    expect((await req(base, '/api/health', { headers: { Origin: 'http://evil.example', Cookie: cookie() } })).status).toBe(403);
   });
   it('rejects a POST without Origin with 403', async () => {
-    await http(base).post('/api/health').set('Cookie', cookie()).expect(403);
+    expect((await req(base, '/api/health', { method: 'POST', headers: { Cookie: cookie() } })).status).toBe(403);
   });
   it('rejects requests without the cookie', async () => {
-    const res = await http(base).get('/api/health').expect(401);
+    const res = await req(base, '/api/health');
+    expect(res.status).toBe(401);
     expect(res.text).toContain('Abra a URL impressa no terminal.');
   });
   it('rejects a wrong token', async () => {
-    await http(base).get('/?t=wrong').expect(401);
+    expect((await req(base, '/?t=wrong')).status).toBe(401);
   });
   it('exchanges the token for a strict HttpOnly cookie', async () => {
-    const res = await http(base).get(`/?t=${ctx.token}`).expect(302);
+    const res = await req(base, `/?t=${ctx.token}`);
+    expect(res.status).toBe(302);
     expect(res.headers.location).toBe('/');
     const set = String(res.headers['set-cookie']);
     expect(set).toContain('HttpOnly');
     expect(set).toContain('SameSite=Strict');
   });
   it('serves the API with the cookie and security headers', async () => {
-    const res = await http(base).get('/api/health').set('Cookie', cookie()).expect(200);
+    const res = await req(base, '/api/health', { headers: { Cookie: cookie() } });
+    expect(res.status).toBe(200);
     expect(res.body).toEqual({ ok: true });
     expect(res.headers['content-security-policy']).toContain("default-src 'self'");
     expect(res.headers['x-content-type-options']).toBe('nosniff');
     expect(res.headers['referrer-policy']).toBe('no-referrer');
   });
   it('accepts localhost as host', async () => {
-    await http(base).get('/api/health').set('Host', host.replace('127.0.0.1', 'localhost')).set('Cookie', cookie()).expect(200);
+    const res = await req(base, '/api/health', { headers: { Host: host.replace('127.0.0.1', 'localhost'), Cookie: cookie() } });
+    expect(res.status).toBe(200);
   });
 });
 

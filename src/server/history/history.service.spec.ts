@@ -1,4 +1,4 @@
-import { http } from '../../../test/helpers/http';
+import { req } from '../../../test/helpers/http';
 import { AddressInfo } from 'node:net';
 import { HistoryService } from './history.service';
 import { GitService } from '../git/git.service';
@@ -72,13 +72,14 @@ describe('history HTTP', () => {
     await repo.commit('one');
     const ctx = await createApp(repo.dir, 0);
     const base = `http://127.0.0.1:${(ctx.app.getHttpServer().address() as AddressInfo).port}`;
-    const get = (p: string) => http(base).get(p).set('Cookie', `gityx=${ctx.token}`);
-    await get('/api/commits/zzz').expect(400);
-    await get(`/api/commits/${'0'.repeat(40)}`).expect(404);
-    await get('/api/history?since=yesterday').expect(400);
-    await get('/api/history?limit=501').expect(400);
-    await get('/api/history?path=../x').expect(400);
-    expect((await get('/api/history').expect(200)).body).toHaveLength(1);
+    const get = (p: string) => req(base, p, { headers: { Cookie: `gityx=${ctx.token}` } });
+    const status = async (p: string) => (await get(p)).status;
+    expect(await status('/api/commits/zzz')).toBe(400);
+    expect(await status(`/api/commits/${'0'.repeat(40)}`)).toBe(404);
+    expect(await status('/api/history?since=yesterday')).toBe(400);
+    expect(await status('/api/history?limit=501')).toBe(400);
+    expect(await status('/api/history?path=../x')).toBe(400);
+    expect((await get('/api/history')).body).toHaveLength(1);
     await ctx.app.close();
     repo.cleanup();
   });
