@@ -1,4 +1,4 @@
-import request from 'supertest';
+import { http } from '../../../test/helpers/http';
 import { AddressInfo } from 'node:net';
 import { HistoryService } from './history.service';
 import { GitService } from '../git/git.service';
@@ -72,7 +72,7 @@ describe('history HTTP', () => {
     await repo.commit('one');
     const ctx = await createApp(repo.dir, 0);
     const base = `http://127.0.0.1:${(ctx.app.getHttpServer().address() as AddressInfo).port}`;
-    const get = (p: string) => request(base).get(p).set('Cookie', `gityx=${ctx.token}`);
+    const get = (p: string) => http(base).get(p).set('Cookie', `gityx=${ctx.token}`);
     await get('/api/commits/zzz').expect(400);
     await get(`/api/commits/${'0'.repeat(40)}`).expect(404);
     await get('/api/history?since=yesterday').expect(400);

@@ -21,7 +21,12 @@ export async function createApp(root: string, port: number) {
   app.use((req: any, res: any, next: any) => guard(req, res, next));
   const web = join(__dirname, '..', 'web');
   if (existsSync(web)) app.useStaticAssets(web);
-  await app.listen(port, '127.0.0.1');
+  try {
+    await app.listen(port, '127.0.0.1');
+  } catch (e) {
+    await app.close().catch(() => {});
+    throw e;
+  }
   bound = (app.getHttpServer().address() as AddressInfo).port;
   guard = securityMiddleware(token, bound);
   return { app, token, url: `http://127.0.0.1:${bound}/?t=${token}` };

@@ -33,7 +33,7 @@ export class LiveService implements OnModuleInit, OnModuleDestroy {
     } catch {
       // The polling below still covers platforms or folders where recursive watch fails.
     }
-    this.timer = setInterval(() => void this.check(), POLL_MS);
+    this.timer = setInterval(() => void this.check(), POLL_MS).unref();
   }
 
   onModuleDestroy() {
