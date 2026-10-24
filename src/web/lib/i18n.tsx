@@ -108,6 +108,7 @@ export const EN: Record<string, string> = {
   'Pais': 'Parents',
   'commit raiz': 'root commit',
   'em {n} arquivos': 'in {n} files',
+  'em 1 arquivo': 'in 1 file',
   'Mensagem': 'Message',
   'aguardando': 'pending',
   'executando': 'running',
