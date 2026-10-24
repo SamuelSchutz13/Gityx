@@ -6,7 +6,7 @@ const config: Config = {
       displayName: 'server',
       testEnvironment: 'node',
       roots: ['<rootDir>/src/server', '<rootDir>/test'],
-      transform: { '^.+\.ts$': ['ts-jest', { tsconfig: 'tsconfig.json' }] },
+      transform: { '^.+\\.ts$': ['ts-jest', { tsconfig: 'tsconfig.json' }] },
     },
   ],
 };
