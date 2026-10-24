@@ -9,7 +9,19 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "resolveJsonModule": true,
-    "types": ["node", "jest"]
+    "types": [
+      "node",
+      "jest"
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "./src/web/*"
+      ]
+    }
   },
-  "include": ["src/server", "test"]
+  "include": [
+    "src/server",
+    "test"
+  ]
 }
