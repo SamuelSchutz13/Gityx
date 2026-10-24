@@ -6,6 +6,8 @@ import { HistoryController } from './history/history.controller';
 import { HistoryService } from './history/history.service';
 import { LiveController } from './live/live.controller';
 import { LiveService } from './live/live.service';
+import { DashboardController } from './dashboard/dashboard.controller';
+import { DashboardService } from './dashboard/dashboard.service';
 
 @Controller('api')
 class HealthController {
@@ -20,8 +22,8 @@ export class AppModule {
   static forRoot(root: string): DynamicModule {
     return {
       module: AppModule,
-      controllers: [HealthController, ChangesController, HistoryController, LiveController],
-      providers: [{ provide: GitService, useValue: new GitService(root) }, ChangesService, HistoryService, LiveService],
+      controllers: [HealthController, ChangesController, HistoryController, LiveController, DashboardController],
+      providers: [{ provide: GitService, useValue: new GitService(root) }, ChangesService, HistoryService, LiveService, DashboardService],
     };
   }
 }
