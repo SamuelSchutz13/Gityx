@@ -98,7 +98,6 @@ export function CommitGraph(props: { compact?: boolean; filters?: HistoryFilters
 
   return (
     <div className="flex h-full flex-col">
-      {props.compact && <h2 className="border-b px-4 py-3 text-sm font-medium">Árvore do Git</h2>}
       <div className="min-h-0 flex-1 overflow-auto">
         {error && <p className="p-4 text-sm text-destructive">Não foi possível carregar o histórico: {error}</p>}
         {!error && !loading && commits.length === 0 && <p className="p-4 text-sm text-muted-foreground">Nenhum commit ainda.</p>}

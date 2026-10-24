@@ -1,4 +1,5 @@
 import { Controller, DynamicModule, Get, Module } from '@nestjs/common';
+import { basename } from 'node:path';
 import { GitService } from './git/git.service';
 import { ChangesController } from './changes/changes.controller';
 import { ChangesService } from './changes/changes.service';
@@ -14,9 +15,16 @@ import { ExportController } from './export/export.controller';
 
 @Controller('api')
 class HealthController {
+  constructor(private readonly git: GitService) {}
+
   @Get('health')
   health() {
     return { ok: true };
+  }
+
+  @Get('info')
+  info() {
+    return { repo: basename(this.git.root) };
   }
 }
 

@@ -52,15 +52,15 @@ export function Dashboard() {
         <Tile title="Mudanças pendentes">
           <p className="text-2xl font-semibold">{data.pending.files}</p>
           <p className="text-xs">
-            <span className="text-green-600 dark:text-green-400">+{data.pending.additions}</span>{' '}
-            <span className="text-red-600 dark:text-red-400">−{data.pending.deletions}</span>
+            <span className="text-success">+{data.pending.additions}</span>{' '}
+            <span className="text-destructive">−{data.pending.deletions}</span>
           </p>
         </Tile>
 
         <Tile title="Último teste">
           {data.lastTest ? (
             <div className="flex items-center gap-2 text-sm">
-              {data.lastTest.status === 'passed' ? <CheckCircle2 className="size-4 text-green-600" aria-hidden /> : <XCircle className="size-4 text-destructive" aria-hidden />}
+              {data.lastTest.status === 'passed' ? <CheckCircle2 className="size-4 text-success" aria-hidden /> : <XCircle className="size-4 text-destructive" aria-hidden />}
               <span>{data.lastTest.passed} ok · {data.lastTest.failed} falhas</span>
             </div>
           ) : (

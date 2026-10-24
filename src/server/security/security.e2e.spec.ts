@@ -62,6 +62,10 @@ describe('server security', () => {
     expect(res.headers['x-content-type-options']).toBe('nosniff');
     expect(res.headers['referrer-policy']).toBe('no-referrer');
   });
+  it('serves repository info for the header', async () => {
+    const res = await req(base, '/api/info', { headers: { Cookie: cookie() } });
+    expect(res.body).toEqual({ repo: require('node:path').basename(repo.dir) });
+  });
   it('accepts localhost as host', async () => {
     const res = await req(base, '/api/health', { headers: { Host: host.replace('127.0.0.1', 'localhost'), Cookie: cookie() } });
     expect(res.status).toBe(200);

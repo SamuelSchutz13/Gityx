@@ -17,7 +17,7 @@ function Status({ s }: { s: TestStatus }) {
   const Icon = ICON[s];
   return (
     <span className="inline-flex items-center gap-1 text-xs">
-      <Icon className={`size-4 ${s === 'running' ? 'animate-spin' : ''} ${s === 'passed' ? 'text-green-600' : s === 'failed' || s === 'error' ? 'text-destructive' : 'text-muted-foreground'}`} aria-hidden />
+      <Icon className={`size-4 ${s === 'running' ? 'animate-spin' : ''} ${s === 'passed' ? 'text-success' : s === 'failed' || s === 'error' ? 'text-destructive' : 'text-muted-foreground'}`} aria-hidden />
       {LABEL[s]}
     </span>
   );

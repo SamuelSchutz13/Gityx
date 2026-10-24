@@ -45,6 +45,15 @@ describe('DiffView', () => {
     expect(mark?.textContent).toBe('token');
   });
 
+  it('opens the focused file', () => {
+    const files = [base, { ...base, path: 'src/b.ts' }];
+    const { rerender } = render(<DiffView files={files} />);
+    expect(screen.queryByText('@@ -1,2 +1,2 @@')).toBeNull();
+    rerender(<DiffView files={files} focus={{ file: 1, seq: 1 }} />);
+    expect(screen.getAllByText('@@ -1,2 +1,2 @@')).toHaveLength(1);
+    expect(document.getElementById('diff-file-1')).toBeInTheDocument();
+  });
+
   it('keeps hits on the right copy when a path is both staged and unstaged', () => {
     const files = [{ ...base, staged: true }, base];
     const hits = [{ file: 1, path: 'src/a.ts', hunk: 0, line: 0, start: 5, end: 10 }];

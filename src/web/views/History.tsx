@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CommitGraph, HistoryFilters } from './CommitGraph';
 import { CommitDetail } from './CommitDetail';
+import { Frame } from './Frame';
 
 export function History() {
   const [draft, setDraft] = useState<HistoryFilters>({});
@@ -15,10 +16,12 @@ export function History() {
     </label>
   );
 
-  return (
-    <div className="flex h-full flex-col gap-4">
+  const left = {
+    title: 'Filtros',
+    width: 260,
+    content: (
       <form
-        className="grid grid-cols-2 gap-2 md:grid-cols-4"
+        className="flex flex-col gap-3 p-3"
         onSubmit={(e) => {
           e.preventDefault();
           setFilters(draft);
@@ -28,19 +31,24 @@ export function History() {
         {field('path', 'Caminho')}
         {field('since', 'Desde', 'date')}
         {field('until', 'Até', 'date')}
-        <div className="col-span-2 flex gap-2 md:col-span-4">
+        <div className="flex gap-2">
           <Button type="submit" size="sm">Filtrar</Button>
           <Button type="button" size="sm" variant="ghost" onClick={() => { setDraft({}); setFilters({}); }}>Limpar</Button>
         </div>
       </form>
-      <div className="grid min-h-0 flex-1 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <div className="min-h-[300px] overflow-hidden rounded-lg border">
-          <CommitGraph filters={filters} selected={selected} onSelect={setSelected} />
-        </div>
-        <div className="min-w-0 overflow-auto">
-          {selected ? <CommitDetail sha={selected} /> : <p className="text-sm text-muted-foreground">Escolha um commit para ver os detalhes.</p>}
-        </div>
+    ),
+  };
+  const right = {
+    title: 'Commit',
+    width: 520,
+    content: <div className="p-3">{selected ? <CommitDetail sha={selected} /> : <p className="text-sm text-muted-foreground">Escolha um commit no grafo para ver os detalhes.</p>}</div>,
+  };
+
+  return (
+    <Frame left={left} right={right}>
+      <div className="-m-4 h-[calc(100%+2rem)]">
+        <CommitGraph filters={filters} selected={selected} onSelect={setSelected} />
       </div>
-    </div>
+    </Frame>
   );
 }

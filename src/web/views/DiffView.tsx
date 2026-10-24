@@ -27,7 +27,7 @@ function withMarks(text: string, hits: { start: number; end: number; active: boo
   return out;
 }
 
-function FileBlock(props: { file: Shown; open: boolean; onToggle(o: boolean): void; hits: SearchHit[]; active: SearchHit | null }) {
+function FileBlock(props: { id: string; file: Shown; open: boolean; onToggle(o: boolean): void; hits: SearchHit[]; active: SearchHit | null }) {
   const f = props.file;
   const ref = useRef<HTMLTableRowElement>(null);
   useEffect(() => {
@@ -74,7 +74,7 @@ function FileBlock(props: { file: Shown; open: boolean; onToggle(o: boolean): vo
   }
 
   return (
-    <Collapsible open={props.open} onOpenChange={props.onToggle} className="overflow-hidden rounded-lg border">
+    <Collapsible id={props.id} open={props.open} onOpenChange={props.onToggle} className="scroll-mt-2 overflow-hidden rounded-md border bg-surface">
       <CollapsibleTrigger className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-accent">
         <ChevronRight className={cn('size-4 shrink-0 transition-transform', props.open && 'rotate-90')} aria-hidden />
         <span className="min-w-0 flex-1 truncate font-mono text-xs">
@@ -83,15 +83,15 @@ function FileBlock(props: { file: Shown; open: boolean; onToggle(o: boolean): vo
         </span>
         {f.staged && <Badge variant="secondary">staged</Badge>}
         <Badge variant="outline">{STATUS[f.status]}</Badge>
-        <span className="text-xs text-green-600 dark:text-green-400">+{f.additions}</span>
-        <span className="text-xs text-red-600 dark:text-red-400">−{f.deletions}</span>
+        <span className="text-xs text-success">+{f.additions}</span>
+        <span className="text-xs text-destructive">−{f.deletions}</span>
       </CollapsibleTrigger>
       <CollapsibleContent className="border-t">{body}</CollapsibleContent>
     </Collapsible>
   );
 }
 
-export function DiffView(props: { files: Shown[]; hits?: SearchHit[]; activeHit?: number; defaultOpen?: boolean }) {
+export function DiffView(props: { files: Shown[]; hits?: SearchHit[]; activeHit?: number; defaultOpen?: boolean; focus?: { file: number; seq: number } }) {
   const [open, setOpen] = useState<Record<string, boolean>>({});
   const hits = props.hits ?? [];
   const active = props.activeHit !== undefined ? hits[props.activeHit] ?? null : null;
@@ -100,6 +100,15 @@ export function DiffView(props: { files: Shown[]; hits?: SearchHit[]; activeHit?
     const f = active && props.files[active.file];
     if (f) setOpen((o) => ({ ...o, [fileKey(f)]: true }));
   }, [active, props.files]);
+
+  // seq changes on every click, so picking the same file again scrolls back to it.
+  useEffect(() => {
+    const f = props.focus && props.files[props.focus.file];
+    if (!f) return;
+    setOpen((o) => ({ ...o, [fileKey(f)]: true }));
+    document.getElementById(`diff-file-${props.focus!.file}`)?.scrollIntoView?.({ block: 'start' });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.focus?.seq]);
 
   if (!props.files.length) return <p className="text-sm text-muted-foreground">Nenhuma mudança no working tree.</p>;
   return (
@@ -110,6 +119,7 @@ export function DiffView(props: { files: Shown[]; hits?: SearchHit[]; activeHit?
         return (
           <FileBlock
             key={k}
+            id={`diff-file-${i}`}
             file={f}
             open={open[k] ?? props.defaultOpen ?? false}
             onToggle={(o) => setOpen((s) => ({ ...s, [k]: o }))}
