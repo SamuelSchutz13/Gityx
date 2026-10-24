@@ -1,0 +1,206 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Palette in the style of GitView: GitHub-like dark surfaces, dense IDE panes. */
+:root {
+  --radius: 0.375rem;
+  --background: #fbfbfc;
+  --foreground: #1c2128;
+  --card: #ffffff;
+  --card-foreground: #1c2128;
+  --popover: #ffffff;
+  --popover-foreground: #1c2128;
+  --primary: #0969da;
+  --primary-foreground: #ffffff;
+  --secondary: #eceef2;
+  --secondary-foreground: #1c2128;
+  --muted: #f6f7f9;
+  --muted-foreground: #7b8491;
+  --accent: #eef1f5;
+  --accent-foreground: #1c2128;
+  --destructive: #cf222e;
+  --border: #dfe3e8;
+  --input: #c9cfd7;
+  --ring: #0969da;
+  --surface: #ffffff;
+  --fg-2: #4b5563;
+  --success: #1a7f37;
+  --warning: #9a6700;
+  --diff-add: rgba(26, 127, 55, 0.12);
+  --diff-del: rgba(207, 34, 46, 0.1);
+  --heat-1: #aceebb;
+  --heat-2: #4ac26b;
+  --heat-3: #2da44e;
+  --heat-4: #116329;
+  --lane-0: #0969da;
+  --lane-1: #8250df;
+  --lane-2: #0f8f7e;
+  --lane-3: #9a6700;
+  --lane-4: #cf222e;
+  --lane-5: #1a7f37;
+  --lane-6: #bc4c00;
+  --lane-7: #57606a;
+  --tok-kw: #cf222e;
+  --tok-type: #0550ae;
+  --tok-fn: #8250df;
+  --tok-str: #0a3069;
+  --tok-num: #0550ae;
+  --tok-com: #6e7781;
+  --tok-builtin: #953800;
+  --canvas: #fbfbfc;
+  --canvas-grid: #eef0f3;
+  --node-fill: #ffffff;
+  --node-border: #d5dae1;
+  --info: #0969da;
+  --scroll-thumb: #c9cfd7;
+  --scroll-thumb-hover: #a8b0bb;
+  color-scheme: light;
+}
+
+.dark {
+  --background: #0b0e12;
+  --foreground: #e3e7ed;
+  --card: #13171d;
+  --card-foreground: #e3e7ed;
+  --popover: #181d24;
+  --popover-foreground: #e3e7ed;
+  --primary: #4c9aff;
+  --primary-foreground: #06101f;
+  --secondary: #1f252d;
+  --secondary-foreground: #e3e7ed;
+  --muted: #181d24;
+  --muted-foreground: #6d7682;
+  --accent: #222932;
+  --accent-foreground: #e3e7ed;
+  --destructive: #f85149;
+  --border: #262d36;
+  --input: #353d48;
+  --ring: #4c9aff;
+  --surface: #13171d;
+  --fg-2: #a7b0bc;
+  --success: #3fb950;
+  --warning: #d29922;
+  --diff-add: rgba(63, 185, 80, 0.13);
+  --diff-del: rgba(248, 81, 73, 0.13);
+  --heat-1: #0e4429;
+  --heat-2: #006d32;
+  --heat-3: #26a641;
+  --heat-4: #39d353;
+  --lane-0: #58a6ff;
+  --lane-1: #b083f0;
+  --lane-2: #39b8a6;
+  --lane-3: #e3b341;
+  --lane-4: #f85149;
+  --lane-5: #56d364;
+  --lane-6: #f0883e;
+  --lane-7: #8b949e;
+  --tok-kw: #ff7b72;
+  --tok-type: #79c0ff;
+  --tok-fn: #d2a8ff;
+  --tok-str: #a5d6ff;
+  --tok-num: #79c0ff;
+  --tok-com: #6e7681;
+  --tok-builtin: #ffa657;
+  --canvas: #0b0e12;
+  --canvas-grid: #151a21;
+  --node-fill: #161b22;
+  --node-border: #2d3540;
+  --info: #58a6ff;
+  --scroll-thumb: #2d3540;
+  --scroll-thumb-hover: #4a5462;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-surface: var(--surface);
+  --color-fg-2: var(--fg-2);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-canvas: var(--canvas);
+  --color-node: var(--node-fill);
+  --color-node-border: var(--node-border);
+  --color-info: var(--info);
+  --color-diff-add: var(--diff-add);
+  --color-diff-del: var(--diff-del);
+}
+
+/* Syntax colors for lowlight (highlight.js class names). */
+.hljs-keyword, .hljs-selector-tag, .hljs-doctag { color: var(--tok-kw); }
+.hljs-type, .hljs-class .hljs-title, .hljs-number, .hljs-literal, .hljs-symbol { color: var(--tok-num); }
+.hljs-title, .hljs-title.function_, .hljs-section { color: var(--tok-fn); }
+.hljs-string, .hljs-regexp, .hljs-template-string, .hljs-attr-value { color: var(--tok-str); }
+.hljs-comment, .hljs-quote, .hljs-meta { color: var(--tok-com); font-style: italic; }
+.hljs-built_in, .hljs-attr, .hljs-attribute, .hljs-variable, .hljs-property, .hljs-name, .hljs-tag { color: var(--tok-builtin); }
+
+/* Thin scrollbars in the theme's colors (standard property first, WebKit fallback for older engines). */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll-thumb) transparent;
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--scroll-thumb);
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scroll-thumb-hover);
+}
+*:hover {
+  scrollbar-color: var(--scroll-thumb-hover) transparent;
+}
+
+/* GitView's canvas: a faint grid behind the main area. */
+.canvas-grid {
+  background-color: var(--canvas);
+  background-image:
+    linear-gradient(var(--canvas-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--canvas-grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    font-size: 14px;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}
