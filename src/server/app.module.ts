@@ -10,6 +10,7 @@ import { DashboardController } from './dashboard/dashboard.controller';
 import { DashboardService, LAST_TEST } from './dashboard/dashboard.service';
 import { RunnerService } from './tests/runner.service';
 import { TestsController } from './tests/tests.controller';
+import { ExportController } from './export/export.controller';
 
 @Controller('api')
 class HealthController {
@@ -24,7 +25,7 @@ export class AppModule {
   static forRoot(root: string): DynamicModule {
     return {
       module: AppModule,
-      controllers: [HealthController, ChangesController, HistoryController, LiveController, DashboardController, TestsController],
+      controllers: [HealthController, ChangesController, HistoryController, LiveController, DashboardController, TestsController, ExportController],
       providers: [
         { provide: GitService, useValue: new GitService(root) },
         ChangesService,
