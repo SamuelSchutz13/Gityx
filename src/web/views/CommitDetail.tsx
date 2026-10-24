@@ -1,3 +1,4 @@
+import { useT } from '../lib/i18n';
 import { useState } from 'react';
 import { Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,9 +13,10 @@ import { RefChip, STATUS_CHIP } from './chips';
 type Tab = 'overview' | 'files' | 'diff';
 
 export function CommitDetail({ sha }: { sha: string }) {
+  const t = useT();
   const { data, error, loading } = useApi<Detail>(`/api/commits/${sha}`);
   const [tab, setTab] = useState<Tab>('overview');
-  if (error) return <p className="p-3 text-sm text-destructive">Não foi possível carregar o commit: {error.message}</p>;
+  if (error) return <p className="p-3 text-sm text-destructive">{t('Não foi possível carregar o commit: {e}', { e: error.message })}</p>;
   if (loading || !data) return <div className="p-3"><Skeleton className="h-24 w-full" /></div>;
 
   const add = data.files.reduce((s, f) => s + f.additions, 0);
@@ -38,26 +40,26 @@ export function CommitDetail({ sha }: { sha: string }) {
         value={tab}
         onChange={setTab}
         tabs={[
-          { id: 'overview', label: 'Visão geral' },
-          { id: 'files', label: <>Arquivos <span className="text-muted-foreground">{data.files.length}</span></> },
+          { id: 'overview', label: t('Visão geral') },
+          { id: 'files', label: <>{t('Arquivos')} <span className="text-muted-foreground">{data.files.length}</span></> },
           { id: 'diff', label: 'Diff' },
         ]}
       />
       {tab === 'overview' && (
         <>
-          <Section title="Detalhes">
+          <Section title={t('Detalhes')}>
             <KV
               rows={[
-                ['Autor', `${data.author} <${data.email}>`],
-                ['Data', fullDate(data.time)],
+                [t('Autor'), `${data.author} <${data.email}>`],
+                [t('Data'), fullDate(data.time)],
                 ['SHA', <span className="font-mono text-xs">{data.sha}</span>],
-                ['Pais', data.parents.length ? <span className="font-mono text-xs">{data.parents.map((p) => p.slice(0, 7)).join(' ')}</span> : 'commit raiz'],
-                ['Mudanças', <span><span className="text-success">+{add}</span> <span className="text-destructive">−{del}</span> em {data.files.length} arquivos</span>],
+                [t('Pais'), data.parents.length ? <span className="font-mono text-xs">{data.parents.map((p) => p.slice(0, 7)).join(' ')}</span> : t('commit raiz')],
+                [t('Mudanças'), <span><span className="text-success">+{add}</span> <span className="text-destructive">−{del}</span> {t('em {n} arquivos', { n: data.files.length })}</span>],
               ]}
             />
           </Section>
           {data.body && (
-            <Section title="Mensagem">
+            <Section title={t('Mensagem')}>
               <pre className="font-sans text-[13px] whitespace-pre-wrap text-fg-2">{data.body}</pre>
             </Section>
           )}
@@ -68,7 +70,7 @@ export function CommitDetail({ sha }: { sha: string }) {
           {data.files.map((f) => (
             <li key={f.path} className="flex items-center gap-2 px-3 py-1.5 text-[13px]">
               <span className="min-w-0 flex-1 truncate font-mono text-xs">{f.path}</span>
-              <Chip tone={STATUS_CHIP[f.status].tone} upper>{STATUS_CHIP[f.status].label}</Chip>
+              <Chip tone={STATUS_CHIP[f.status].tone} upper>{t(STATUS_CHIP[f.status].label)}</Chip>
               <span className="font-mono text-xs text-success">+{f.additions}</span>
               <span className="font-mono text-xs text-destructive">−{f.deletions}</span>
             </li>

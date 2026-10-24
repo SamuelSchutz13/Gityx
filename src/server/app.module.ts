@@ -12,6 +12,8 @@ import { DashboardService, LAST_TEST } from './dashboard/dashboard.service';
 import { RunnerService } from './tests/runner.service';
 import { TestsController } from './tests/tests.controller';
 import { ExportController } from './export/export.controller';
+import { StatsController } from './stats/stats.controller';
+import { StatsService } from './stats/stats.service';
 
 @Controller('api')
 class HealthController {
@@ -33,7 +35,7 @@ export class AppModule {
   static forRoot(root: string): DynamicModule {
     return {
       module: AppModule,
-      controllers: [HealthController, ChangesController, HistoryController, LiveController, DashboardController, TestsController, ExportController],
+      controllers: [HealthController, ChangesController, HistoryController, LiveController, DashboardController, TestsController, ExportController, StatsController],
       providers: [
         { provide: GitService, useValue: new GitService(root) },
         ChangesService,
@@ -41,6 +43,7 @@ export class AppModule {
         LiveService,
         DashboardService,
         RunnerService,
+        StatsService,
         { provide: LAST_TEST, useFactory: (r: RunnerService) => () => r.lastSummary(), inject: [RunnerService] },
       ],
     };

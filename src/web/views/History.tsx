@@ -1,3 +1,4 @@
+import { useT } from '../lib/i18n';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +9,7 @@ import { useApi } from '../lib/api';
 import type { Commit } from '../../server/shared/types';
 
 export function History() {
+  const t = useT();
   const [draft, setDraft] = useState<HistoryFilters>({});
   const [filters, setFilters] = useState<HistoryFilters>({});
   const [picked, setSelected] = useState<string | null>(null);
@@ -16,13 +18,13 @@ export function History() {
   const selected = picked ?? newest.data?.[0]?.sha ?? null;
   const field = (key: keyof HistoryFilters, label: string, type = 'text') => (
     <label className="flex flex-col gap-1 text-xs text-muted-foreground">
-      {label}
+      {t(label)}
       <Input type={type} value={draft[key] ?? ''} onChange={(e) => setDraft({ ...draft, [key]: e.target.value })} className="h-8" />
     </label>
   );
 
   const left = {
-    title: 'Filtros',
+    title: t('Filtros'),
     width: 260,
     content: (
       <form
@@ -37,16 +39,16 @@ export function History() {
         {field('since', 'Desde', 'date')}
         {field('until', 'Até', 'date')}
         <div className="flex gap-2">
-          <Button type="submit" size="sm">Filtrar</Button>
-          <Button type="button" size="sm" variant="ghost" onClick={() => { setDraft({}); setFilters({}); }}>Limpar</Button>
+          <Button type="submit" size="sm">{t('Filtrar')}</Button>
+          <Button type="button" size="sm" variant="ghost" onClick={() => { setDraft({}); setFilters({}); }}>{t('Limpar')}</Button>
         </div>
       </form>
     ),
   };
   const right = {
-    title: 'Inspetor',
+    title: t('Inspetor'),
     width: 520,
-    content: <div>{selected ? <CommitDetail key={selected} sha={selected} /> : <p className="p-3 text-sm text-muted-foreground">Escolha um commit no grafo para ver os detalhes.</p>}</div>,
+    content: <div>{selected ? <CommitDetail key={selected} sha={selected} /> : <p className="p-3 text-sm text-muted-foreground">{t('Escolha um commit no grafo para ver os detalhes.')}</p>}</div>,
   };
 
   return (

@@ -14,3 +14,15 @@ export interface ProjectRun { project: TestProject; status: TestStatus; exitCode
 export interface TestRun { id: string; status: TestStatus; startedAt: number; projects: ProjectRun[] }
 export interface TestRunSummary { status: TestStatus; passed: number; failed: number; finishedAt: number }
 export interface SearchHit { file: number; path: string; hunk: number; line: number; start: number; end: number }
+export interface Stats {
+  totalCommits: number;
+  contributors: number;
+  firstCommit: number | null;
+  lastTag: string | null;
+  trackedFiles: number;
+  languages: { name: string; files: number }[];
+  hotFiles: { path: string; changes: number }[];
+  weekly: { week: string; count: number }[];
+  /** [weekday 0=Sunday][hour] commit counts over the last year */
+  punchcard: number[][];
+}

@@ -1,3 +1,4 @@
+import { useT } from './lib/i18n';
 import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { useApi, useLive } from './lib/api';
@@ -21,6 +22,7 @@ const fromHash = (): View => {
 export function App() {
   const [view, setView] = useState<View>(fromHash);
   const [selected, setSelected] = useState<string | null>(null);
+  const t = useT();
   const info = useApi<{ repo: string }>('/api/info');
   const dash = useApi<DashboardData>('/api/dashboard');
   useLive(() => dash.reload());
@@ -33,14 +35,14 @@ export function App() {
   const p = dash.data?.pending;
   const status = p && (
     <>
-      <span>{p.files} arquivos alterados</span>
+      <span>{t('{n} arquivos alterados', { n: p.files })}</span>
       <span>
         <span className="text-success">+{p.additions}</span> <span className="text-destructive">−{p.deletions}</span>
       </span>
       {dash.data?.upstream && <span>{`${dash.data.upstream} ↑${dash.data.ahead} ↓${dash.data.behind}`}</span>}
     </>
   );
-  const tree = { title: 'Árvore do Git', width: 420, content: <CommitGraph compact selected={selected} onSelect={setSelected} /> };
+  const tree = { title: t('Árvore do Git'), width: 420, content: <CommitGraph compact selected={selected} onSelect={setSelected} /> };
 
   return (
     <FrameCtx.Provider value={{ view, onNavigate: (v) => (location.hash = v), repo: info.data?.repo, branch: dash.data?.branch, status }}>

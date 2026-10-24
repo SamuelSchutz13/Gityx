@@ -43,6 +43,10 @@ describe('packaged CLI', () => {
     const page = await req(base, '/', { headers: { Cookie: cookie } });
     expect(page.status).toBe(200);
     expect(page.text).toContain('<div id="root">');
+    expect(page.text).toContain('rel="icon"');
+    const icon = await req(base, '/favicon.svg', { headers: { Cookie: cookie } });
+    expect(icon.status).toBe(200);
+    expect(icon.headers['content-type']).toMatch(/^image\/svg\+xml/);
     const dash = await req(base, '/api/dashboard', { headers: { Cookie: cookie } });
     expect(dash.status).toBe(200);
     expect(dash.body.recent[0].subject).toBe('one');

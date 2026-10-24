@@ -13,7 +13,14 @@ const data: Data = {
 };
 
 beforeEach(() => {
-  globalThis.fetch = jest.fn().mockResolvedValue({ ok: true, status: 200, text: async () => JSON.stringify(data) }) as any;
+  const stats = {
+    totalCommits: 42, contributors: 3, firstCommit: 1600000000, lastTag: 'v2.0.0', trackedFiles: 120,
+    languages: [{ name: 'ts', files: 80 }, { name: '__other__', files: 5 }],
+    hotFiles: [{ path: 'src/app.ts', changes: 9 }],
+    weekly: Array.from({ length: 26 }, (_, i) => ({ week: `2026-0${1 + (i % 9)}-01`, count: i })),
+    punchcard: Array.from({ length: 7 }, () => Array(24).fill(0)),
+  };
+  globalThis.fetch = jest.fn(async (url: string) => ({ ok: true, status: 200, text: async () => JSON.stringify(url === '/api/stats' ? stats : data) })) as any;
 });
 
 describe('Dashboard', () => {
@@ -25,5 +32,11 @@ describe('Dashboard', () => {
     expect(screen.getByText('primeiro')).toBeInTheDocument();
     expect(screen.getByText('Ana')).toBeInTheDocument();
     expect(container.querySelectorAll('[data-heat]')).toHaveLength(84);
+    expect(await screen.findByText('v2.0.0')).toBeInTheDocument();
+    expect(screen.getByText('.ts')).toBeInTheDocument();
+    expect(screen.getByText('outros')).toBeInTheDocument();
+    expect(screen.getByText('src/app.ts')).toBeInTheDocument();
+    expect(container.querySelectorAll('[data-bar]')).toHaveLength(26);
+    expect(container.querySelectorAll('[data-cell]')).toHaveLength(168);
   });
 });

@@ -1,6 +1,7 @@
 import { Chip, Tone } from '@/components/kit';
 import type { FileDiff } from '../../server/shared/types';
 
+// Labels are i18n keys; render them through t()
 export const STATUS_CHIP: Record<FileDiff['status'], { label: string; tone: Tone }> = {
   added: { label: 'novo', tone: 'success' },
   untracked: { label: 'novo', tone: 'success' },

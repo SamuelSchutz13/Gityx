@@ -1,4 +1,12 @@
-const rtf = new Intl.RelativeTimeFormat('pt-BR', { numeric: 'auto' });
+let locale = 'pt-BR';
+let rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+
+export function setLocale(l: string) {
+  if (l === locale) return;
+  locale = l;
+  rtf = new Intl.RelativeTimeFormat(l, { numeric: 'auto' });
+}
+
 const STEPS: [Intl.RelativeTimeFormatUnit, number][] = [
   ['year', 31536000],
   ['month', 2592000],
@@ -13,9 +21,14 @@ export function relativeTime(unixSeconds: number): string {
   for (const [unit, secs] of STEPS) {
     if (Math.abs(diff) >= secs) return rtf.format(Math.round(diff / secs), unit);
   }
-  return 'agora';
+  return rtf.format(0, 'second');
 }
 
 export function fullDate(unixSeconds: number): string {
-  return new Date(unixSeconds * 1000).toLocaleString('pt-BR');
+  return new Date(unixSeconds * 1000).toLocaleString(locale);
+}
+
+export function shortDate(iso: string): string {
+  const [y, m, d] = iso.split('-').map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString(locale, { day: '2-digit', month: 'short' });
 }

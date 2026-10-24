@@ -1,3 +1,4 @@
+import { useT } from '../lib/i18n';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { cn } from 'cn';
 import { RefChip } from './chips';
@@ -41,6 +42,7 @@ function Lanes({ row, width, h }: { row: GraphRow; width: number; h: number }) {
 
 
 export function CommitGraph(props: { compact?: boolean; filters?: HistoryFilters; selected?: string | null; onSelect(sha: string): void }) {
+  const t = useT();
   const [commits, setCommits] = useState<Commit[]>([]);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -94,8 +96,8 @@ export function CommitGraph(props: { compact?: boolean; filters?: HistoryFilters
   return (
     <div className="flex h-full flex-col">
       <div className="min-h-0 flex-1 overflow-auto">
-        {error && <p className="p-4 text-sm text-destructive">Não foi possível carregar o histórico: {error}</p>}
-        {!error && !loading && commits.length === 0 && <p className="p-4 text-sm text-muted-foreground">Nenhum commit ainda.</p>}
+        {error && <p className="p-4 text-sm text-destructive">{t('Não foi possível carregar o histórico: {e}', { e: error })}</p>}
+        {!error && !loading && commits.length === 0 && <p className="p-4 text-sm text-muted-foreground">{t('Nenhum commit ainda.')}</p>}
         <ul className="py-1">
           {rows.map((row) => (
             <li key={row.commit.sha}>

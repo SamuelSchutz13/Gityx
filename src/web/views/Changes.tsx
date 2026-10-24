@@ -1,3 +1,4 @@
+import { useT } from '../lib/i18n';
 import { useMemo, useState } from 'react';
 import { ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
 import { cn } from 'cn';
@@ -26,20 +27,21 @@ const GROUPS: { title: string; match(f: FileDiff): boolean }[] = [
 ];
 
 function FileList({ files, onPick }: { files: FileDiff[]; onPick(i: number): void }) {
+  const t = useT();
   const [filter, setFilter] = useState('');
   const shown = files.map((f, i) => ({ f, i })).filter(({ f }) => f.path.toLowerCase().includes(filter.toLowerCase()));
   return (
     <div>
       <div className="border-b p-2">
-        <Input placeholder="Filtrar arquivos..." value={filter} onChange={(e) => setFilter(e.target.value)} className="h-8 bg-background" />
+        <Input placeholder={t('Filtrar arquivos...')} value={filter} onChange={(e) => setFilter(e.target.value)} className="h-8 bg-background" />
       </div>
-      {!files.length && <p className="p-3 text-sm text-muted-foreground">Working tree limpo.</p>}
+      {!files.length && <p className="p-3 text-sm text-muted-foreground">{t('Working tree limpo.')}</p>}
       {GROUPS.map((g) => {
         const items = shown.filter(({ f }) => g.match(f));
         if (!items.length) return null;
         return (
           <div key={g.title}>
-            <GroupHeader title={g.title} count={items.length} />
+            <GroupHeader title={t(g.title)} count={items.length} />
             <ul>
               {items.map(({ f, i }) => {
                 const slash = f.path.lastIndexOf('/');
@@ -51,7 +53,7 @@ function FileList({ files, onPick }: { files: FileDiff[]; onPick(i: number): voi
                         <span className="block truncate text-[13px]">{f.path.slice(slash + 1)}</span>
                         <span className="block truncate font-mono text-[11px] text-muted-foreground">{slash > 0 ? f.path.slice(0, slash) : '.'}</span>
                         <span className="mt-1 flex gap-1">
-                          <Chip tone={STATUS_CHIP[f.status].tone} upper>{STATUS_CHIP[f.status].label}</Chip>
+                          <Chip tone={STATUS_CHIP[f.status].tone} upper>{t(STATUS_CHIP[f.status].label)}</Chip>
                           <Chip tone="success" mono>+{f.additions}</Chip>
                           <Chip tone="danger" mono>−{f.deletions}</Chip>
                         </span>
@@ -69,6 +71,7 @@ function FileList({ files, onPick }: { files: FileDiff[]; onPick(i: number): voi
 }
 
 export function Changes({ tree }: { tree?: PaneDef }) {
+  const t = useT();
   const { data, error, loading, reload } = useApi<FileDiff[]>('/api/changes');
   useLive((t) => t === 'changes' && reload());
   const [query, setQuery] = useState('');
@@ -85,7 +88,7 @@ export function Changes({ tree }: { tree?: PaneDef }) {
   const step = (d: number) => lineHits.length && setActive((current + d + lineHits.length) % lineHits.length);
 
   const left = {
-    title: `Arquivos · ${files.length}`,
+    title: t('Arquivos · {n}', { n: files.length }),
     width: 280,
     content: <FileList files={files} onPick={(file) => setFocus((f) => ({ file, seq: (f?.seq ?? 0) + 1 }))} />,
   };
@@ -95,7 +98,7 @@ export function Changes({ tree }: { tree?: PaneDef }) {
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">
           <Input
-            placeholder="Buscar nos diffs (Enter: próxima, Shift+Enter: anterior)"
+            placeholder={t('Buscar nos diffs (Enter: próxima, Shift+Enter: anterior)')}
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
@@ -108,27 +111,27 @@ export function Changes({ tree }: { tree?: PaneDef }) {
             className="h-8 max-w-md flex-1 bg-surface"
             aria-invalid={!!result.error}
           />
-          <Toggle size="sm" pressed={caseSensitive} onPressedChange={setCaseSensitive} aria-label="Diferenciar maiúsculas" title="Diferenciar maiúsculas">Aa</Toggle>
-          <Toggle size="sm" pressed={regex} onPressedChange={setRegex} aria-label="Expressão regular" title="Expressão regular">.*</Toggle>
-          <Button size="icon" variant="ghost" onClick={() => step(-1)} aria-label="Ocorrência anterior" disabled={!lineHits.length}><ChevronUp className="size-4" /></Button>
-          <Button size="icon" variant="ghost" onClick={() => step(1)} aria-label="Próxima ocorrência" disabled={!lineHits.length}><ChevronDown className="size-4" /></Button>
-          {query && !result.error && <span className="text-xs text-muted-foreground">{lineHits.length ? `${current + 1}/${lineHits.length}` : 'nenhuma ocorrência'}</span>}
+          <Toggle size="sm" pressed={caseSensitive} onPressedChange={setCaseSensitive} aria-label={t('Diferenciar maiúsculas')} title={t('Diferenciar maiúsculas')}>Aa</Toggle>
+          <Toggle size="sm" pressed={regex} onPressedChange={setRegex} aria-label={t('Expressão regular')} title={t('Expressão regular')}>.*</Toggle>
+          <Button size="icon" variant="ghost" onClick={() => step(-1)} aria-label={t('Ocorrência anterior')} disabled={!lineHits.length}><ChevronUp className="size-4" /></Button>
+          <Button size="icon" variant="ghost" onClick={() => step(1)} aria-label={t('Próxima ocorrência')} disabled={!lineHits.length}><ChevronDown className="size-4" /></Button>
+          {query && !result.error && <span className="text-xs text-muted-foreground">{lineHits.length ? `${current + 1}/${lineHits.length}` : t('nenhuma ocorrência')}</span>}
           {result.error && <span className="text-xs text-destructive">{result.error}</span>}
-          <Button size="icon" variant="ghost" onClick={reload} aria-label="Atualizar" className="ml-auto">
+          <Button size="icon" variant="ghost" onClick={reload} aria-label={t('Atualizar')} className="ml-auto">
             <RefreshCw className="size-4" />
           </Button>
         </div>
-        {error && <p className="text-sm text-destructive">Não foi possível ler as mudanças: {error.message}</p>}
+        {error && <p className="text-sm text-destructive">{t('Não foi possível ler as mudanças: {e}', { e: error.message })}</p>}
         {loading && !data ? (
           <Skeleton className="h-32 w-full" />
         ) : files.length ? (
           <>
-            <Hint>Os diffs se atualizam sozinhos quando um arquivo muda. Clique num arquivo à esquerda para ir até ele.</Hint>
+            <Hint>{t('Os diffs se atualizam sozinhos quando um arquivo muda. Clique num arquivo à esquerda para ir até ele.')}</Hint>
             <DiffView files={files} hits={lineHits} activeHit={query ? current : undefined} focus={focus} defaultOpen={files.length <= 8} />
           </>
         ) : (
-          <Empty icon={<FileCheck2 className="size-8" />} title="Nenhuma mudança no working tree">
-            Edite um arquivo do repositório e o diff aparece aqui na hora.
+          <Empty icon={<FileCheck2 className="size-8" />} title={t('Nenhuma mudança no working tree')}>
+            {t('Edite um arquivo do repositório e o diff aparece aqui na hora.')}
           </Empty>
         )}
       </div>

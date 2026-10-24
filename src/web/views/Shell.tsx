@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { ChevronLeft, ChevronRight, Download, FileDiff, FlaskConical, GitBranch, History, LayoutDashboard, Moon, Sun } from 'lucide-react';
 import { cn } from 'cn';
 import { toggleTheme } from '../lib/theme';
+import { useLang } from '../lib/i18n';
 
 export type View = 'overview' | 'changes' | 'history' | 'tests' | 'export';
 
@@ -30,14 +31,15 @@ export function PaneTitle({ children, action }: { children: ReactNode; action?: 
 }
 
 function SidePane({ pane, side }: { pane: PaneDef; side: 'left' | 'right' }) {
+  const { t } = useLang();
   const [open, setOpen] = useState(true);
   const Icon = (side === 'left') === open ? ChevronLeft : ChevronRight;
   const toggle = (
     <button
       type="button"
       onClick={() => setOpen(!open)}
-      aria-label={`${open ? 'Recolher' : 'Mostrar'} ${pane.title}`}
-      title={`${open ? 'Recolher' : 'Mostrar'} ${pane.title}`}
+      aria-label={t(open ? 'Recolher {x}' : 'Mostrar {x}', { x: pane.title })}
+      title={t(open ? 'Recolher {x}' : 'Mostrar {x}', { x: pane.title })}
       className="rounded p-0.5 text-muted-foreground hover:bg-accent hover:text-foreground"
     >
       <Icon className="size-4" />
@@ -71,6 +73,7 @@ export function Shell(props: {
   children: ReactNode;
 }) {
   const [, rerender] = useState(0);
+  const { t, lang, setLang } = useLang();
   const dark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
 
   return (
@@ -89,7 +92,7 @@ export function Shell(props: {
         {props.branch && (
           <span className="hidden max-w-48 shrink-0 truncate rounded-md border bg-muted px-1.5 py-0.5 font-mono text-xs text-fg-2 md:inline">{props.branch}</span>
         )}
-        <nav role="tablist" aria-label="Telas" className="ml-auto flex shrink-0 gap-0.5 rounded-md border bg-muted p-0.5">
+        <nav role="tablist" aria-label={t('Telas')} className="ml-auto flex shrink-0 gap-0.5 rounded-md border bg-muted p-0.5">
           {TABS.map(({ view, label, icon: Icon }) => {
             const active = props.view === view;
             return (
@@ -98,8 +101,8 @@ export function Shell(props: {
                 type="button"
                 role="tab"
                 aria-selected={active}
-                aria-label={label}
-                title={label}
+                aria-label={t(label)}
+                title={t(label)}
                 onClick={() => props.onNavigate(view)}
                 className={cn(
                   'flex items-center gap-1.5 rounded px-2.5 py-1 text-[13px] text-fg-2 transition-colors hover:text-foreground',
@@ -107,15 +110,29 @@ export function Shell(props: {
                 )}
               >
                 <Icon className="size-3.5 opacity-80" aria-hidden />
-                <span className={active ? 'hidden sm:inline' : 'hidden xl:inline'} aria-hidden>{label}</span>
+                <span className={active ? 'hidden sm:inline' : 'hidden xl:inline'} aria-hidden>{t(label)}</span>
               </button>
             );
           })}
         </nav>
+        <div role="group" aria-label={t('Idioma')} className="flex shrink-0 rounded-md border bg-muted p-0.5 text-[11px] font-semibold">
+          {(['pt', 'en'] as const).map((l) => (
+            <button
+              key={l}
+              type="button"
+              aria-pressed={lang === l}
+              title={l === 'pt' ? 'Português (Brasil)' : 'English'}
+              onClick={() => setLang(l)}
+              className={cn('rounded px-1.5 py-0.5 text-muted-foreground hover:text-foreground', lang === l && 'bg-surface text-foreground ring-1 ring-border')}
+            >
+              {l === 'pt' ? 'PT' : 'EN'}
+            </button>
+          ))}
+        </div>
         <button
           type="button"
-          aria-label="Alternar tema"
-          title={dark ? 'Tema claro' : 'Tema escuro'}
+          aria-label={t('Alternar tema')}
+          title={dark ? t('Tema claro') : t('Tema escuro')}
           onClick={() => {
             toggleTheme();
             rerender((n) => n + 1);
@@ -134,11 +151,11 @@ export function Shell(props: {
 
       <footer className="flex h-6 shrink-0 items-center gap-4 border-t bg-surface px-3 text-[11px] text-muted-foreground">
         <div className="flex min-w-0 flex-1 items-center gap-4 truncate">{props.status}</div>
-        <span title="Servido só nesta máquina (127.0.0.1)">
+        <span title={t('Servido só nesta máquina (127.0.0.1)')}>
           <span className="mr-1.5 inline-block size-1.5 rounded-full bg-success align-middle" />
-          ao vivo · {typeof location !== 'undefined' ? location.host : ''}
+          {t('ao vivo')} · {typeof location !== 'undefined' ? location.host : ''}
         </span>
-        <span>local · sem IA · só leitura</span>
+        <span>{t('local · sem IA · só leitura')}</span>
       </footer>
     </div>
   );

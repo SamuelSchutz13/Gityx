@@ -1,3 +1,4 @@
+import { useT } from '../lib/i18n';
 import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { cn } from 'cn';
@@ -25,6 +26,7 @@ function withMarks(text: string, hits: { start: number; end: number; active: boo
 }
 
 function FileBlock(props: { id: string; file: Shown; open: boolean; onToggle(o: boolean): void; hits: SearchHit[]; active: SearchHit | null }) {
+  const t = useT();
   const f = props.file;
   const ref = useRef<HTMLTableRowElement>(null);
   useEffect(() => {
@@ -32,9 +34,9 @@ function FileBlock(props: { id: string; file: Shown; open: boolean; onToggle(o: 
   }, [props.active]);
 
   let body: ReactNode;
-  if (f.omitted) body = <p className="p-3 text-sm text-muted-foreground">Conteúdo omitido: arquivo potencialmente sensível.</p>;
-  else if (f.binary) body = <p className="p-3 text-sm text-muted-foreground">Arquivo binário</p>;
-  else if (!f.hunks.length) body = <p className="p-3 text-sm text-muted-foreground">{f.truncated ? 'Diff truncado: arquivo grande demais para exibir.' : 'Sem mudanças de conteúdo.'}</p>;
+  if (f.omitted) body = <p className="p-3 text-sm text-muted-foreground">{t('Conteúdo omitido: arquivo potencialmente sensível.')}</p>;
+  else if (f.binary) body = <p className="p-3 text-sm text-muted-foreground">{t('Arquivo binário')}</p>;
+  else if (!f.hunks.length) body = <p className="p-3 text-sm text-muted-foreground">{f.truncated ? t('Diff truncado: arquivo grande demais para exibir.') : t('Sem mudanças de conteúdo.')}</p>;
   else {
     body = (
       <div className="overflow-x-auto">
@@ -65,7 +67,7 @@ function FileBlock(props: { id: string; file: Shown; open: boolean; onToggle(o: 
             ))}
           </tbody>
         </table>
-        {f.truncated && <p className="p-3 text-sm text-muted-foreground">Diff truncado: só as primeiras 5000 linhas aparecem.</p>}
+        {f.truncated && <p className="p-3 text-sm text-muted-foreground">{t('Diff truncado: só as primeiras 5000 linhas aparecem.')}</p>}
       </div>
     );
   }
@@ -79,7 +81,7 @@ function FileBlock(props: { id: string; file: Shown; open: boolean; onToggle(o: 
           {f.path}
         </span>
         {f.staged && <Chip upper>staged</Chip>}
-        <Chip tone={STATUS_CHIP[f.status].tone} upper>{STATUS_CHIP[f.status].label}</Chip>
+        <Chip tone={STATUS_CHIP[f.status].tone} upper>{t(STATUS_CHIP[f.status].label)}</Chip>
         <span className="text-xs text-success">+{f.additions}</span>
         <span className="text-xs text-destructive">−{f.deletions}</span>
       </CollapsibleTrigger>
@@ -89,6 +91,7 @@ function FileBlock(props: { id: string; file: Shown; open: boolean; onToggle(o: 
 }
 
 export function DiffView(props: { files: Shown[]; hits?: SearchHit[]; activeHit?: number; defaultOpen?: boolean; focus?: { file: number; seq: number } }) {
+  const t = useT();
   const [open, setOpen] = useState<Record<string, boolean>>({});
   const hits = props.hits ?? [];
   const active = props.activeHit !== undefined ? hits[props.activeHit] ?? null : null;
@@ -107,7 +110,7 @@ export function DiffView(props: { files: Shown[]; hits?: SearchHit[]; activeHit?
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.focus?.seq]);
 
-  if (!props.files.length) return <p className="text-sm text-muted-foreground">Nenhuma mudança no working tree.</p>;
+  if (!props.files.length) return <p className="text-sm text-muted-foreground">{t('Nenhuma mudança no working tree.')}</p>;
   return (
     <div className="space-y-2">
       {props.files.map((f, i) => {

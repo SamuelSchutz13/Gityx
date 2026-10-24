@@ -11,3 +11,6 @@ class Noop {
 }
 (globalThis as any).ResizeObserver ??= Noop;
 (globalThis as any).IntersectionObserver ??= Noop;
+
+// Tests read the Portuguese UI unless they switch language themselves.
+localStorage.setItem('gityx.lang', 'pt');

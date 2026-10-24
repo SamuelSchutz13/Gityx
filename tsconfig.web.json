@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "module": "ESNext",
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
@@ -11,8 +15,20 @@
     "isolatedModules": true,
     "esModuleInterop": true,
     "baseUrl": ".",
-    "paths": { "@/*": ["./src/web/*"] },
-    "types": ["jest", "@testing-library/jest-dom"]
+    "paths": {
+      "@/*": [
+        "./src/web/*"
+      ]
+    },
+    "types": [
+      "jest",
+      "@testing-library/jest-dom",
+      "node"
+    ]
   },
-  "include": ["src/web", "src/server/shared", "src/server/search"]
+  "include": [
+    "src/web",
+    "src/server/shared",
+    "src/server/search"
+  ]
 }
