@@ -1,5 +1,5 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
-import { join, relative } from 'node:path';
+import { basename, join, relative } from 'node:path';
 import type { TestProject } from '../shared/types';
 import { ConfigError, GityxConfig, projectDir } from './config';
 
@@ -23,6 +23,35 @@ function nodeKind(dir: string): TestProject['kind'] | null {
   return null;
 }
 
+function readSmall(file: string): string {
+  try {
+    return readFileSync(file, 'utf8').slice(0, 200_000);
+  } catch {
+    return '';
+  }
+}
+
+function otherRunners(dir: string, files: string[]): [string, string[]][] {
+  const has = (n: string) => files.includes(n);
+  const out: [string, string[]][] = [];
+  if (has('pom.xml')) out.push(['maven', ['mvn', 'test']]);
+  if (files.some((f) => /^build\.gradle(\.kts)?$/.test(f))) {
+    out.push(['gradle', has('gradlew') ? [process.platform === 'win32' ? 'gradlew.bat' : './gradlew', 'test'] : ['gradle', 'test']]);
+  }
+  if (files.some((f) => /\.sln$/.test(f) || /tests?\.(cs|fs)proj$/i.test(f))) out.push(['dotnet', ['dotnet', 'test']]);
+  if (has('phpunit.xml') || has('phpunit.xml.dist')) out.push(['phpunit', ['vendor/bin/phpunit']]);
+  const pytest =
+    has('pytest.ini') ||
+    has('conftest.py') ||
+    (has('pyproject.toml') && readSmall(join(dir, 'pyproject.toml')).includes('pytest')) ||
+    (has('setup.cfg') && readSmall(join(dir, 'setup.cfg')).includes('[tool:pytest]')) ||
+    files.some((f) => /^requirements.*\.txt$/.test(f) && /^pytest\b/m.test(readSmall(join(dir, f))));
+  if (pytest) out.push(['pytest', ['python', '-m', 'pytest']]);
+  if (has('.rspec')) out.push(['rspec', ['bundle', 'exec', 'rspec']]);
+  if (has('Cargo.toml')) out.push(['cargo', ['cargo', 'test']]);
+  return out;
+}
+
 export function discover(root: string, config: GityxConfig): TestProject[] {
   if (config.projects) {
     return config.projects.map((p) => {
@@ -36,16 +65,21 @@ export function discover(root: string, config: GityxConfig): TestProject[] {
   const found: TestProject[] = [];
   const walk = (dir: string, depth: number) => {
     const rel = relative(root, dir).split('\\').join('/') || '.';
+    const label = rel === '.' ? basename(root) : rel;
     const kind = nodeKind(dir);
-    if (kind) found.push({ name: `${rel} · ${kind}`, kind, dir: rel });
-    if (existsSync(join(dir, 'go.mod'))) found.push({ name: `${rel} · go`, kind: 'go', dir: rel });
-    if (depth >= MAX_DEPTH) return;
+    if (kind) found.push({ name: `${label} · ${kind}`, kind, dir: rel });
+    if (existsSync(join(dir, 'go.mod'))) found.push({ name: `${label} · go`, kind: 'go', dir: rel });
     let entries;
     try {
       entries = readdirSync(dir, { withFileTypes: true });
     } catch {
       return;
     }
+    // Other ecosystems run as plain commands: Gityx shows their exit code and log, never invented counts.
+    for (const [tool, command] of otherRunners(dir, entries.filter((e) => e.isFile()).map((e) => e.name))) {
+      found.push({ name: `${label} · ${tool}`, kind: 'command', dir: rel, command });
+    }
+    if (depth >= MAX_DEPTH) return;
     for (const e of entries.sort((a, b) => a.name.localeCompare(b.name))) {
       if (e.isDirectory() && !SKIP.has(e.name) && !e.name.startsWith('.')) walk(join(dir, e.name), depth + 1);
     }

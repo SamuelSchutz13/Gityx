@@ -54,7 +54,7 @@ export function CommitDetail({ sha }: { sha: string }) {
                 [t('Data'), fullDate(data.time)],
                 ['SHA', <span className="font-mono text-xs">{data.sha}</span>],
                 [t('Pais'), data.parents.length ? <span className="font-mono text-xs">{data.parents.map((p) => p.slice(0, 7)).join(' ')}</span> : t('commit raiz')],
-                [t('Mudanças'), <span><span className="text-success">+{add}</span> <span className="text-destructive">−{del}</span> {t('em {n} arquivos', { n: data.files.length })}</span>],
+                [t('Mudanças'), <span><span className="text-success">+{add}</span> <span className="text-destructive">−{del}</span> {t(data.files.length === 1 ? 'em 1 arquivo' : 'em {n} arquivos', { n: data.files.length })}</span>],
               ]}
             />
           </Section>

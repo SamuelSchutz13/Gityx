@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { Dashboard } from './Dashboard';
+import { SettingsProvider } from '../lib/settings';
 import type { Dashboard as Data } from '../../server/shared/types';
 
 const data: Data = {
@@ -7,7 +8,7 @@ const data: Data = {
   pending: { files: 3, additions: 10, deletions: 4 },
   recent: [{ sha: 'a'.repeat(40), parents: [], author: 'Ana', email: 'a@x', time: 1700000000, refs: [], subject: 'primeiro' }],
   activity: Array.from({ length: 84 }, (_, i) => ({ day: `d${i}`, count: i % 5 })),
-  authors: [{ name: 'Ana', count: 7 }],
+  authors: [{ name: 'Ana Souza', count: 7, email: '42+ana@users.noreply.github.com' }],
   lastTest: { status: 'passed', passed: 5, failed: 0, finishedAt: 1700000000000 },
   stashes: 1, branches: 4,
 };
@@ -19,24 +20,48 @@ beforeEach(() => {
     hotFiles: [{ path: 'src/app.ts', changes: 9 }],
     weekly: Array.from({ length: 26 }, (_, i) => ({ week: `2026-0${1 + (i % 9)}-01`, count: i })),
     punchcard: Array.from({ length: 7 }, () => Array(24).fill(0)),
+    linesByLanguage: [{ name: 'ts', lines: 900 }, { name: 'css', lines: 100 }],
+    totalLines: 1000,
+    merges: 4,
+    commitTypes: [{ type: 'feat', count: 6 }, { type: 'fix', count: 2 }],
+    frameworks: [{ name: 'React', version: '19.1.0', category: 'framework', source: 'package.json' }, { name: 'Docker', category: 'infra', source: 'Dockerfile' }],
   };
   globalThis.fetch = jest.fn(async (url: string) => ({ ok: true, status: 200, text: async () => JSON.stringify(url === '/api/stats' ? stats : data) })) as any;
 });
 
 describe('Dashboard', () => {
+  it('shows GitHub photos only when enabled in settings', async () => {
+    localStorage.setItem('gityx.githubPhotos', '1');
+    const { container } = render(<SettingsProvider><Dashboard /></SettingsProvider>);
+    await screen.findByText('Ana Souza');
+    expect(container.querySelector('img')!.getAttribute('src')).toBe('https://avatars.githubusercontent.com/u/42?s=64');
+    localStorage.removeItem('gityx.githubPhotos');
+  });
+
   it('summarizes the repository', async () => {
     const { container } = render(<Dashboard />);
     expect(await screen.findByText('main')).toBeInTheDocument();
     expect(screen.getByText('origin/main')).toBeInTheDocument();
     expect(screen.getByText('↑2 ↓1')).toBeInTheDocument();
     expect(screen.getByText('primeiro')).toBeInTheDocument();
-    expect(screen.getByText('Ana')).toBeInTheDocument();
+    expect(screen.getByText('Ana Souza')).toBeInTheDocument();
     expect(container.querySelectorAll('[data-heat]')).toHaveLength(84);
     expect(await screen.findByText('v2.0.0')).toBeInTheDocument();
-    expect(screen.getByText('.ts')).toBeInTheDocument();
+    expect(screen.getAllByText('.ts').length).toBe(2);
     expect(screen.getByText('outros')).toBeInTheDocument();
     expect(screen.getByText('src/app.ts')).toBeInTheDocument();
     expect(container.querySelectorAll('[data-bar]')).toHaveLength(26);
     expect(container.querySelectorAll('[data-cell]')).toHaveLength(168);
+    expect(screen.getByText('React')).toBeInTheDocument();
+    expect(screen.getByText('Infraestrutura')).toBeInTheDocument();
+    expect(screen.getByText('Funcionalidades (feat)')).toBeInTheDocument();
+    expect(screen.getByText('90%')).toBeInTheDocument();
+    expect(container.querySelectorAll('[data-slice]')).toHaveLength(4);
+    expect(container.querySelector('svg[data-brand="React"]')).not.toBeNull();
+    expect(screen.getByText('v19.1.0')).toBeInTheDocument();
+    // photos are off by default: initials only, nothing requested from GitHub
+    expect(screen.getByText('AS')).toBeInTheDocument();
+    expect(container.querySelector('img')).toBeNull();
+
   });
 });

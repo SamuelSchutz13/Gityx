@@ -6,7 +6,7 @@ export type FileStatus = 'added' | 'modified' | 'deleted' | 'renamed' | 'untrack
 export interface FileDiff { path: string; oldPath?: string; status: FileStatus; staged: boolean; binary: boolean; truncated: boolean; additions: number; deletions: number; hunks: Hunk[] }
 export interface Commit { sha: string; parents: string[]; author: string; email: string; time: number; refs: string[]; subject: string }
 export interface CommitDetail extends Commit { body: string; files: FileDiff[] }
-export interface Dashboard { branch: string | null; upstream: string | null; ahead: number; behind: number; pending: { files: number; additions: number; deletions: number }; recent: Commit[]; activity: { day: string; count: number }[]; authors: { name: string; count: number }[]; lastTest: TestRunSummary | null; stashes: number; branches: number }
+export interface Dashboard { branch: string | null; upstream: string | null; ahead: number; behind: number; pending: { files: number; additions: number; deletions: number }; recent: Commit[]; activity: { day: string; count: number }[]; authors: { name: string; count: number; email: string }[]; lastTest: TestRunSummary | null; stashes: number; branches: number }
 export type TestStatus = 'pending' | 'running' | 'passed' | 'failed' | 'skipped' | 'cancelled' | 'error';
 export interface TestProject { name: string; kind: 'jest' | 'vitest' | 'script' | 'go' | 'command'; dir: string; command?: string[] }
 export interface TestCase { name: string; file?: string; status: TestStatus; durationMs?: number; message?: string }
@@ -25,4 +25,18 @@ export interface Stats {
   weekly: { week: string; count: number }[];
   /** [weekday 0=Sunday][hour] commit counts over the last year */
   punchcard: number[][];
+  /** lines of tracked text files, by extension (top 7 + __other__) */
+  linesByLanguage: { name: string; lines: number }[];
+  totalLines: number;
+  merges: number;
+  /** conventional-commit type of last year's subjects: feat, fix, docs... plus merge and other */
+  commitTypes: { type: string; count: number }[];
+  frameworks: Framework[];
+}
+export interface Framework {
+  name: string;
+  version?: string;
+  category: 'language' | 'framework' | 'data' | 'style' | 'test' | 'build' | 'infra';
+  /** manifest the detection came from */
+  source: string;
 }

@@ -30,7 +30,7 @@ export class DashboardService {
       this.changes.list(),
       this.history.page({ skip: 0, limit: 8 }),
       this.git.tryRun(['log', 'HEAD', `--since=${DAYS}.days`, '--format=%at']),
-      this.git.tryRun(['log', 'HEAD', '--format=%an']),
+      this.git.tryRun(['log', 'HEAD', '--format=%an%x1f%ae']),
       this.git.tryRun(['stash', 'list']),
       this.git.tryRun(['for-each-ref', 'refs/heads', '--format=%(refname)']),
     ]);
@@ -56,9 +56,19 @@ export class DashboardService {
       if (i !== undefined) activity[i].count++;
     }
 
-    const counts = new Map<string, number>();
-    for (const n of lines(names)) counts.set(n, (counts.get(n) ?? 0) + 1);
-    const authors = [...counts].map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count).slice(0, 5);
+    // Per author name: commit count and the e-mail they used most (for the avatar).
+    const counts = new Map<string, { count: number; emails: Map<string, number> }>();
+    for (const line of lines(names)) {
+      const [name, email = ''] = line.split('\x1f');
+      const a = counts.get(name) ?? { count: 0, emails: new Map<string, number>() };
+      a.count++;
+      a.emails.set(email, (a.emails.get(email) ?? 0) + 1);
+      counts.set(name, a);
+    }
+    const authors = [...counts]
+      .map(([name, a]) => ({ name, count: a.count, email: [...a.emails].sort((x, y) => y[1] - x[1])[0][0] }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
 
     return {
       branch,

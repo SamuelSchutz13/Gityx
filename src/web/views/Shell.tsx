@@ -1,8 +1,11 @@
 import { useState, type ReactNode } from 'react';
-import { ChevronLeft, ChevronRight, Download, FileDiff, FlaskConical, GitBranch, History, LayoutDashboard, Moon, Sun } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download, FileDiff, FlaskConical, History, LayoutDashboard, Moon, Settings, Sun } from 'lucide-react';
 import { cn } from 'cn';
-import { toggleTheme } from '../lib/theme';
+import { useSettings } from '../lib/settings';
+import { Logo } from '@/components/logo';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useLang } from '../lib/i18n';
+import { FlagBR, FlagUS } from '@/components/flags';
 
 export type View = 'overview' | 'changes' | 'history' | 'tests' | 'export';
 
@@ -62,6 +65,83 @@ function SidePane({ pane, side }: { pane: PaneDef; side: 'left' | 'right' }) {
   );
 }
 
+function OptionButton({ active, onClick, children, label }: { active: boolean; onClick(): void; children: ReactNode; label: string }) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      aria-label={label}
+      onClick={onClick}
+      className={cn(
+        'flex flex-1 items-center justify-center gap-2 rounded-md border px-2 py-1.5 text-[13px] text-fg-2 transition-colors hover:text-foreground',
+        active ? 'border-primary bg-primary/10 text-foreground' : 'border-border bg-muted',
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+/** Gear popover with the per-viewer preferences: language, theme and the opt-in GitHub photos. */
+function SettingsMenu() {
+  const { t, lang, setLang } = useLang();
+  const { theme, setTheme, photos, setPhotos } = useSettings();
+  const heading = 'mb-1.5 text-[11px] font-semibold tracking-wider text-muted-foreground uppercase';
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button type="button" aria-label={t('Configurações')} title={t('Configurações')} className="shrink-0 rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground">
+          <Settings className="size-4" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-80 space-y-4 bg-surface p-3">
+        <div>
+          <div className={heading}>{t('Idioma')}</div>
+          <div className="flex gap-1.5">
+            <OptionButton active={lang === 'pt'} onClick={() => setLang('pt')} label="Português (Brasil)">
+              <FlagBR className="h-3.5 w-5 rounded-sm" /> Português
+            </OptionButton>
+            <OptionButton active={lang === 'en'} onClick={() => setLang('en')} label="English">
+              <FlagUS className="h-3.5 w-5 rounded-sm" /> English
+            </OptionButton>
+          </div>
+        </div>
+        <div>
+          <div className={heading}>{t('Tema')}</div>
+          <div className="flex gap-1.5">
+            <OptionButton active={theme === 'dark'} onClick={() => setTheme('dark')} label={t('Escuro')}>
+              <Moon className="size-4" /> {t('Escuro')}
+            </OptionButton>
+            <OptionButton active={theme === 'light'} onClick={() => setTheme('light')} label={t('Claro')}>
+              <Sun className="size-4" /> {t('Claro')}
+            </OptionButton>
+          </div>
+        </div>
+        <div>
+          <div className={heading}>{t('Privacidade')}</div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={photos}
+            aria-label={t('Fotos do GitHub')}
+            onClick={() => setPhotos(!photos)}
+            className="flex w-full items-start gap-3 rounded-md border bg-muted p-2.5 text-left"
+          >
+            <span className={cn('relative mt-0.5 h-4 w-7 shrink-0 rounded-full transition-colors', photos ? 'bg-info' : 'bg-background ring-1 ring-border')}>
+              <span className={cn('absolute top-0.5 size-3 rounded-full bg-white transition-all', photos ? 'left-3.5' : 'left-0.5')} />
+            </span>
+            <span>
+              <span className="block text-[13px] font-medium">{t('Fotos do GitHub')}</span>
+              <span className="block text-xs text-muted-foreground">{t('Busca as fotos em avatars.githubusercontent.com: o GitHub recebe os e-mails dos autores e o seu IP.')}</span>
+            </span>
+          </button>
+        </div>
+        <p className="border-t pt-2 text-[11px] text-muted-foreground">{t('local · sem IA · só leitura')}</p>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 export function Shell(props: {
   view: View;
   onNavigate(v: View): void;
@@ -72,17 +152,21 @@ export function Shell(props: {
   status?: ReactNode;
   children: ReactNode;
 }) {
-  const [, rerender] = useState(0);
-  const { t, lang, setLang } = useLang();
-  const dark = typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
+  const { t } = useLang();
 
   return (
     <div className="flex min-h-screen flex-col lg:h-screen">
       <header className="flex h-11 shrink-0 items-center gap-3 overflow-x-auto border-b bg-surface px-3">
-        <span className="flex shrink-0 items-center gap-2 text-primary">
-          <GitBranch className="size-5" aria-hidden />
+        <button
+          type="button"
+          onClick={() => props.onNavigate('overview')}
+          aria-label={`Gityx: ${t('Visão geral')}`}
+          title={t('Visão geral')}
+          className="flex shrink-0 items-center gap-2 rounded-md px-1 py-0.5 text-primary hover:bg-accent"
+        >
+          <Logo className="size-6" />
           <span className="font-semibold text-foreground">Gityx</span>
-        </span>
+        </button>
         {props.repo && (
           <>
             <span className="text-muted-foreground">/</span>
@@ -115,32 +199,7 @@ export function Shell(props: {
             );
           })}
         </nav>
-        <div role="group" aria-label={t('Idioma')} className="flex shrink-0 rounded-md border bg-muted p-0.5 text-[11px] font-semibold">
-          {(['pt', 'en'] as const).map((l) => (
-            <button
-              key={l}
-              type="button"
-              aria-pressed={lang === l}
-              title={l === 'pt' ? 'Português (Brasil)' : 'English'}
-              onClick={() => setLang(l)}
-              className={cn('rounded px-1.5 py-0.5 text-muted-foreground hover:text-foreground', lang === l && 'bg-surface text-foreground ring-1 ring-border')}
-            >
-              {l === 'pt' ? 'PT' : 'EN'}
-            </button>
-          ))}
-        </div>
-        <button
-          type="button"
-          aria-label={t('Alternar tema')}
-          title={dark ? t('Tema claro') : t('Tema escuro')}
-          onClick={() => {
-            toggleTheme();
-            rerender((n) => n + 1);
-          }}
-          className="shrink-0 rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
-        >
-          {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
-        </button>
+        <SettingsMenu />
       </header>
 
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">

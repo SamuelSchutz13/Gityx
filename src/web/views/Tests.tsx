@@ -8,6 +8,15 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle } f
 import { api, ApiError, useApi } from '../lib/api';
 import type { TestProject, TestRun, TestStatus } from '../../server/shared/types';
 
+const GITYX_JSON = `{
+  "tests": {
+    "projects": [
+      { "name": "api", "kind": "command", "dir": ".",
+        "command": ["python", "-m", "pytest"] }
+    ]
+  }
+}`;
+
 const ICON: Record<TestStatus, typeof CheckCircle2> = {
   pending: CircleDashed, running: Loader2, passed: CheckCircle2, failed: XCircle, skipped: MinusCircle, cancelled: CircleSlash, error: XCircle,
 };
@@ -64,14 +73,19 @@ export function Tests() {
       <div>
         {projects.error && <p className="p-3 text-sm text-destructive">{projects.error.message}</p>}
         {projects.data && !projects.data.length && (
-          <p className="p-3 text-sm text-muted-foreground">{t('Nenhum projeto de teste encontrado (Jest, Vitest, script test, Go ou .gityx.json).')}</p>
+          <div className="space-y-2 p-3 text-[13px] text-muted-foreground">
+            <p>{t('Nenhum projeto de teste encontrado.')}</p>
+            <p>{t('O Gityx reconhece sozinho Jest, Vitest, o script "test" do package.json (Mocha, AVA, node:test...), Go, pytest, cargo, dotnet, Maven, Gradle, PHPUnit e RSpec.')}</p>
+            <p>{t('Para qualquer outro comando, crie um .gityx.json na raiz do repositório:')}</p>
+            <pre className="overflow-x-auto rounded-md border bg-background p-2 font-mono text-[11px] text-foreground">{GITYX_JSON}</pre>
+          </div>
         )}
         <ul className="py-1">
           {projects.data?.map((p) => (
             <li key={p.name} className="flex items-center gap-2 px-3 py-1.5">
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-[13px]">{p.name}</span>
-                <span className="block truncate font-mono text-[11px] text-muted-foreground">{p.dir}</span>
+                <span className="block truncate font-mono text-[11px] text-muted-foreground">{p.command ? `${p.dir} $ ${p.command.join(' ')}` : p.dir}</span>
               </span>
               <Chip tone="info" upper>{p.kind}</Chip>
               <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" disabled={running} onClick={() => void start([p.name])}>{t('Rodar')}</Button>

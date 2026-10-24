@@ -1,4 +1,5 @@
 import { LangProvider } from './lib/i18n';
+import { SettingsProvider } from './lib/settings';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -12,7 +13,9 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <TooltipProvider>
       <LangProvider>
-        <App />
+        <SettingsProvider>
+          <App />
+        </SettingsProvider>
       </LangProvider>
     </TooltipProvider>
   </StrictMode>,

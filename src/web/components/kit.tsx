@@ -32,12 +32,13 @@ export function Chip({ tone = 'neutral', mono, upper, className, children, title
 }
 
 /** Gray uppercase heading for a block inside a pane ("WHY IT CAN BE A PROBLEM"). */
-export function Section({ title, count, children, className }: { title: string; count?: number; children: ReactNode; className?: string }) {
+export function Section({ title, count, children, className, action }: { title: string; count?: number; children: ReactNode; className?: string; action?: ReactNode }) {
   return (
     <section className={cn('border-b px-3 py-3 last:border-b-0', className)}>
       <h3 className="mb-2 flex items-center gap-2 text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">
         {title}
         {count !== undefined && <span className="font-normal">{count}</span>}
+        {action && <span className="ml-auto font-normal tracking-normal normal-case">{action}</span>}
       </h3>
       {children}
     </section>

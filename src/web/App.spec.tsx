@@ -9,7 +9,7 @@ const responses: Record<string, unknown> = {
   '/api/info': { repo: 'demo' },
   '/api/dashboard': dashboard,
   '/api/changes': [],
-  '/api/stats': { totalCommits: 0, contributors: 0, firstCommit: null, lastTag: null, trackedFiles: 0, languages: [], hotFiles: [], weekly: [], punchcard: Array.from({ length: 7 }, () => Array(24).fill(0)) },
+  '/api/stats': { totalCommits: 0, contributors: 0, firstCommit: null, lastTag: null, trackedFiles: 0, languages: [], hotFiles: [], weekly: [], punchcard: Array.from({ length: 7 }, () => Array(24).fill(0)), linesByLanguage: [], totalLines: 0, merges: 0, commitTypes: [], frameworks: [] },
   '/api/tests/projects': [],
   '/api/tests/run': null,
 };
