@@ -12,7 +12,7 @@ it('runs tests over HTTP with confirmation and shows them on the dashboard', asy
   const ctx = await createApp(repo.dir, 0);
   try {
     const base = `http://127.0.0.1:${(ctx.app.getHttpServer().address() as AddressInfo).port}`;
-    const headers = { Cookie: `gityx=${ctx.token}`, Origin: base };
+    const headers = { Cookie: ctx.cookie, Origin: base };
     const get = (p: string) => req(base, p, { headers });
     const post = (p: string, body: unknown) => req(base, p, { method: 'POST', headers, body });
 

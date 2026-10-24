@@ -11,7 +11,7 @@ it('downloads reports as attachments', async () => {
   const ctx = await createApp(repo.dir, 0);
   try {
     const base = `http://127.0.0.1:${(ctx.app.getHttpServer().address() as AddressInfo).port}`;
-    const get = (p: string) => req(base, p, { headers: { Cookie: `gityx=${ctx.token}` } });
+    const get = (p: string) => req(base, p, { headers: { Cookie: ctx.cookie } });
     const md = await get('/api/export?format=md');
     expect(md.status).toBe(200);
     expect(md.headers['content-disposition']).toMatch(/^attachment; filename="gityx-.+-\d{8}-\d{4}\.md"$/);

@@ -20,6 +20,9 @@ function readCookie(req: Request, name: string): string | undefined {
   return undefined;
 }
 
+// Cookies ignore ports, so two Gityx instances would overwrite each other's session.
+export const cookieName = (port: number) => `gityx_${port}`;
+
 export function securityMiddleware(token: string, port: number): RequestHandler {
   const hosts = new Set([`127.0.0.1:${port}`, `localhost:${port}`]);
   const origins = new Set([...hosts].map((h) => `http://${h}`));
@@ -38,11 +41,11 @@ export function securityMiddleware(token: string, port: number): RequestHandler 
 
     if (req.method === 'GET' && req.path === '/' && typeof req.query.t === 'string') {
       if (!sameToken(req.query.t, token)) return void res.status(401).send('Token inválido.');
-      res.setHeader('Set-Cookie', `gityx=${token}; HttpOnly; SameSite=Strict; Path=/`);
+      res.setHeader('Set-Cookie', `${cookieName(port)}=${token}; HttpOnly; SameSite=Strict; Path=/`);
       return void res.redirect(302, '/');
     }
 
-    if (!sameToken(readCookie(req, 'gityx'), token)) {
+    if (!sameToken(readCookie(req, cookieName(port)), token)) {
       return void res.status(401).send('Abra a URL impressa no terminal.');
     }
     next();

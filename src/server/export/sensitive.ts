@@ -1,6 +1,6 @@
 import type { FileDiff, TestRun } from '../shared/types';
 
-const NAME_PATTERNS = [/(^|\/)\.env(\..*)?$/, /\.(pem|key|p12|pfx)$/, /id_(rsa|ed25519|ecdsa)/, /credentials/, /secrets?\./];
+const NAME_PATTERNS = [/(^|\/)\.env(\..*)?$/i, /\.(pem|key|p12|pfx)$/i, /id_(rsa|ed25519|ecdsa)/i, /credentials/i, /secrets?\./i];
 const CONTENT_PATTERNS = [
   /AKIA[0-9A-Z]{16}/,
   /gh[pousr]_[A-Za-z0-9]{36}/,

@@ -39,6 +39,14 @@ describe('assignLanes', () => {
     expect(rows[0].lanesAfter).toBe(1);
   });
 
+  it('does not grow lanes for hidden parents when filtering', () => {
+    // --author keeps parents that are not in the result, so every row would open a lane forever.
+    const rows = assignLanes([c('C', 'x1'), c('B', 'x2'), c('A', 'x3')], { dropMissingParents: true });
+    expect(rows.map((r) => r.lane)).toEqual([0, 0, 0]);
+    expect(Math.max(...rows.map((r) => r.lanesAfter))).toBe(0);
+    expect(assignLanes([c('C', 'x1'), c('B', 'x2')]).map((r) => r.lane)).toEqual([0, 1]);
+  });
+
   it('reuses freed lanes', () => {
     const rows = assignLanes([c('T1', 'R'), c('T2', 'Q'), c('Q'), c('T3', 'R'), c('R')]);
     expect(rows.map((r) => [r.commit.sha, r.lane])).toEqual([['T1', 0], ['T2', 1], ['Q', 1], ['T3', 1], ['R', 0]]);

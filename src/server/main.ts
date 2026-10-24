@@ -9,7 +9,7 @@ import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
 import { parseArgs, resolveRoot } from './cli';
-import { securityMiddleware } from './security/security';
+import { cookieName, securityMiddleware } from './security/security';
 
 export async function createApp(root: string, port: number) {
   const token = randomBytes(24).toString('base64url');
@@ -29,7 +29,7 @@ export async function createApp(root: string, port: number) {
   }
   bound = (app.getHttpServer().address() as AddressInfo).port;
   guard = securityMiddleware(token, bound);
-  return { app, token, url: `http://127.0.0.1:${bound}/?t=${token}` };
+  return { app, token, cookie: `${cookieName(bound)}=${token}`, url: `http://127.0.0.1:${bound}/?t=${token}` };
 }
 
 function openBrowser(url: string) {
@@ -44,7 +44,11 @@ async function cli() {
   try {
     const args = parseArgs(process.argv.slice(2));
     const root = await resolveRoot(args.dir);
-    const { url } = await createApp(root, args.port);
+    const { app, url } = await createApp(root, args.port);
+    // Test runs live in their own process group, so Ctrl+C must cancel them explicitly (via onModuleDestroy).
+    const stop = (code: number) => void app.close().finally(() => process.exit(code));
+    process.once('SIGINT', () => stop(130));
+    process.once('SIGTERM', () => stop(143));
     console.log(`Gityx em ${root}\n${url}\nCtrl+C para encerrar.`);
     if (args.open) openBrowser(url);
   } catch (e: any) {

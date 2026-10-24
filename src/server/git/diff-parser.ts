@@ -18,7 +18,8 @@ function unquote(s: string): string {
 }
 
 function stripPrefix(p: string): string {
-  const u = unquote(p);
+  // git appends a TAB to ---/+++ names that contain spaces.
+  const u = unquote(p.endsWith('\t') ? p.slice(0, -1) : p);
   return u.startsWith('a/') || u.startsWith('b/') ? u.slice(2) : u;
 }
 

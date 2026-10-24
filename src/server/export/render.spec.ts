@@ -17,6 +17,12 @@ describe('isSensitive', () => {
     expect(isSensitive('certs/server.pem', '')).toBe(true);
     expect(isSensitive('aws/credentials', '')).toBe(true);
   });
+  it('flags sensitive names regardless of case', () => {
+    expect(isSensitive('.ENV', '')).toBe(true);
+    expect(isSensitive('keys/ID_RSA.pem', '')).toBe(true);
+    expect(isSensitive('Credentials.json', '')).toBe(true);
+    expect(isSensitive('certs\\Server.KEY', '')).toBe(true);
+  });
   it('flags sensitive content', () => {
     expect(isSensitive('src/a.ts', 'const k = "AKIAABCDEFGHIJKLMNOP"')).toBe(true);
     expect(isSensitive('src/a.ts', `t = "ghp_${'a'.repeat(36)}"`)).toBe(true);

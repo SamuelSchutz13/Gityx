@@ -20,7 +20,9 @@ export interface GraphRow {
 }
 
 // Input must be ordered newest first (git log --date-order). Lane i waits for commit active[i].
-export function assignLanes(commits: Commit[]): GraphRow[] {
+// dropMissingParents: for filtered history (--author), where parents outside the result never arrive.
+export function assignLanes(commits: Commit[], opts: { dropMissingParents?: boolean } = {}): GraphRow[] {
+  const loaded = opts.dropMissingParents ? new Set(commits.map((c) => c.sha)) : null;
   const active: (string | null)[] = [];
   const free = () => {
     const i = active.indexOf(null);
@@ -36,7 +38,7 @@ export function assignLanes(commits: Commit[]): GraphRow[] {
     for (const j of mergedFrom) active[j] = null;
 
     const edges: GraphEdge[] = [];
-    const [first, ...rest] = commit.parents;
+    const [first, ...rest] = loaded ? commit.parents.filter((p) => loaded.has(p)) : commit.parents;
     active[lane] = first ?? null;
     if (first) edges.push({ fromLane: lane, toLane: lane, parent: first });
     for (const p of rest) {

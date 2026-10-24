@@ -49,6 +49,32 @@ describe('packaged CLI', () => {
     expect((await req(base, '/assets/does-not-exist.js')).status).toBe(401);
   });
 
+  // Windows has no SIGINT delivery to a child process; this runs on Linux/macOS CI.
+  (process.platform === 'win32' ? it.skip : it)('kills running tests on Ctrl+C', async () => {
+    const r = await makeRepo();
+    const script = 'console.log(process.pid); setInterval(() => {}, 1000)';
+    require('node:fs').writeFileSync(join(r.dir, '.gityx.json'), JSON.stringify({ tests: { projects: [{ name: 'slow', kind: 'command', dir: '.', command: [process.execPath, '-e', script] }] } }));
+    const cli = spawn(process.execPath, [join(root, 'dist/server/main.js'), r.dir, '--open=false']);
+    const link = await new Promise<string>((resolve) => cli.stdout!.on('data', (d) => {
+      const m = /http:\/\/127\.0\.0\.1:\d+\/\?t=\S+/.exec(String(d));
+      if (m) resolve(m[0]);
+    }));
+    const base = new URL(link).origin;
+    const cookie = String((await req(base, new URL(link).pathname + new URL(link).search)).headers['set-cookie']).split(';')[0];
+    await req(base, '/api/tests/run', { method: 'POST', headers: { Cookie: cookie, Origin: base }, body: { confirm: true } });
+    let pid = 0;
+    for (let i = 0; i < 50 && !pid; i++) {
+      await new Promise((res) => setTimeout(res, 100));
+      pid = Number((await req(base, '/api/tests/run', { headers: { Cookie: cookie } })).body?.projects?.[0]?.log?.trim()) || 0;
+    }
+    expect(pid).toBeGreaterThan(0);
+    cli.kill('SIGINT');
+    await new Promise((res) => cli.on('exit', res));
+    await new Promise((res) => setTimeout(res, 300));
+    expect(() => process.kill(pid, 0)).toThrow();
+    r.cleanup();
+  }, 30000);
+
   it('prints a friendly error outside a repository', () => {
     let msg = '';
     try {

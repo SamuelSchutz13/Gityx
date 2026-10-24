@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { open, stat } from 'node:fs/promises';
+import { lstat, open, readlink } from 'node:fs/promises';
 import { GitService } from '../git/git.service';
 import { MAX_LINES, parseDiff } from '../git/diff-parser';
 import { confine } from '../repo/paths';
@@ -30,8 +30,24 @@ export class ChangesService {
 
   private async untracked(path: string): Promise<FileDiff> {
     const f: FileDiff = { path, status: 'untracked', staged: false, binary: false, truncated: false, additions: 0, deletions: 0, hunks: [] };
-    const abs = confine(this.git.root, path);
-    const size = (await stat(abs)).size;
+    try {
+      return await this.readUntracked(f);
+    } catch {
+      // The file may vanish or change type while the user edits; one bad entry must not fail the whole list.
+      return f;
+    }
+  }
+
+  private async readUntracked(f: FileDiff): Promise<FileDiff> {
+    const abs = confine(this.git.root, f.path);
+    const info = await lstat(abs);
+    if (info.isSymbolicLink()) {
+      // Like git, show where the link points; following it could read files outside the repo.
+      const target = await readlink(abs);
+      return { ...f, additions: 1, hunks: [{ header: '@@ -0,0 +1 @@', lines: [{ kind: 'add', oldNo: null, newNo: 1, text: target }] }] };
+    }
+    if (!info.isFile()) return f;
+    const size = info.size;
     const fh = await open(abs, 'r');
     try {
       const head = Buffer.alloc(Math.min(size, 8000));

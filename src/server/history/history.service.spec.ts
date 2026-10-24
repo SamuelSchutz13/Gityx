@@ -72,7 +72,7 @@ describe('history HTTP', () => {
     await repo.commit('one');
     const ctx = await createApp(repo.dir, 0);
     const base = `http://127.0.0.1:${(ctx.app.getHttpServer().address() as AddressInfo).port}`;
-    const get = (p: string) => req(base, p, { headers: { Cookie: `gityx=${ctx.token}` } });
+    const get = (p: string) => req(base, p, { headers: { Cookie: ctx.cookie } });
     const status = async (p: string) => (await get(p)).status;
     expect(await status('/api/commits/zzz')).toBe(400);
     expect(await status(`/api/commits/${'0'.repeat(40)}`)).toBe(404);

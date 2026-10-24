@@ -9,6 +9,8 @@ export class GitService {
   async run(args: string[], opts: { maxBuffer?: number } = {}): Promise<string> {
     const { stdout } = await exec('git', ['-c', 'core.quotePath=false', ...args], {
       cwd: this.root,
+      // status/diff would otherwise refresh .git/index and race the user's own git add/commit.
+      env: { ...process.env, GIT_OPTIONAL_LOCKS: '0' },
       maxBuffer: opts.maxBuffer ?? 64 * 1024 * 1024,
       windowsHide: true,
     });

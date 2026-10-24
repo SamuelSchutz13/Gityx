@@ -20,7 +20,7 @@ describe('server security', () => {
     await ctx.app.close();
     repo.cleanup();
   });
-  const cookie = () => `gityx=${ctx.token}`;
+  const cookie = () => ctx.cookie;
 
   it('listens on loopback only', () => {
     expect((ctx.app.getHttpServer().address() as AddressInfo).address).toBe('127.0.0.1');
@@ -50,6 +50,9 @@ describe('server security', () => {
     const set = String(res.headers['set-cookie']);
     expect(set).toContain('HttpOnly');
     expect(set).toContain('SameSite=Strict');
+    // cookies ignore ports, so each instance needs its own name
+    expect(set.startsWith(`gityx_${host.split(':')[1]}=`)).toBe(true);
+    expect(ctx.cookie).toBe(set.split(';')[0]);
   });
   it('serves the API with the cookie and security headers', async () => {
     const res = await req(base, '/api/health', { headers: { Cookie: cookie() } });

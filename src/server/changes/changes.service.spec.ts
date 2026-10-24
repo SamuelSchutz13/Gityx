@@ -1,6 +1,7 @@
 import { ChangesService } from './changes.service';
 import { GitService } from '../git/git.service';
-import { makeRepo } from '../../../test/helpers/temp-repo';
+import { join } from 'node:path';
+import { emptyDir, makeRepo } from '../../../test/helpers/temp-repo';
 
 describe('ChangesService', () => {
   it('lists staged, unstaged and untracked files', async () => {
@@ -30,6 +31,45 @@ describe('ChangesService', () => {
     await repo.git('add', 'staged.txt');
     const files = await new ChangesService(new GitService(repo.dir)).list();
     expect(files.map((f) => [f.path, f.status])).toEqual([['staged.txt', 'added'], ['new.txt', 'untracked']]);
+    repo.cleanup();
+  });
+
+  it('keeps the exact path of tracked files with spaces', async () => {
+    const repo = await makeRepo();
+    repo.write('a b.txt', '1\n');
+    await repo.commit('init');
+    repo.write('a b.txt', '2\n');
+    await repo.git('add', 'a b.txt');
+    repo.write('c d.txt', 'new\n');
+    await repo.git('add', 'c d.txt');
+    const files = await new ChangesService(new GitService(repo.dir)).list();
+    expect(files.map((f) => f.path)).toEqual(['a b.txt', 'c d.txt']);
+    repo.cleanup();
+  });
+
+  it('survives an untracked file that disappears before it is read', async () => {
+    const repo = await makeRepo();
+    const git = new GitService(repo.dir);
+    const real = git.run.bind(git);
+    git.run = async (args) => (args[0] === 'ls-files' ? 'gone.txt\0' : real(args));
+    const files = await new ChangesService(git).list();
+    expect(files).toEqual([expect.objectContaining({ path: 'gone.txt', status: 'untracked', hunks: [] })]);
+    repo.cleanup();
+  });
+
+  it('shows an untracked symlink as its target text, never the target content', async () => {
+    const repo = await makeRepo();
+    const { symlinkSync, writeFileSync } = await import('node:fs');
+    const outside = join(emptyDir(), 'secret.txt');
+    writeFileSync(outside, 'TOP SECRET\n');
+    try {
+      symlinkSync(outside, join(repo.dir, 'link'));
+    } catch {
+      repo.cleanup();
+      return; // symlinks need extra privileges on Windows
+    }
+    const [f] = await new ChangesService(new GitService(repo.dir)).list();
+    expect(f.hunks[0].lines.map((l) => l.text)).toEqual([outside]);
     repo.cleanup();
   });
 

@@ -90,7 +90,8 @@ export function CommitGraph(props: { compact?: boolean; filters?: HistoryFilters
     return () => io.disconnect();
   }, [commits.length, done, load]);
 
-  const rows = useMemo(() => assignLanes(commits), [commits]);
+  // shortcut: with an author filter, a parent loaded on a later page is not connected; fine for a filtered view.
+  const rows = useMemo(() => assignLanes(commits, { dropMissingParents: !!props.filters?.author }), [commits, props.filters?.author]);
   const lanes = Math.max(1, ...rows.map((r) => Math.max(r.lane + 1, r.lanesAfter, ...r.passThrough.map((p) => p + 1))));
   const width = Math.min(lanes, props.compact ? 8 : 24) * LANE_W + 4;
   const h = props.compact ? 26 : 30;
