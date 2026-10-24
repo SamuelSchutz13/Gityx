@@ -51,7 +51,6 @@ export function Avatar({ name, email, remote, className = 'size-6' }: { name: st
         src={avatarUrl(email)}
         alt=""
         referrerPolicy="no-referrer"
-        loading="lazy"
         onError={() => setFailed(true)}
         className={cn('shrink-0 rounded-full bg-muted ring-1 ring-border', className)}
       />

@@ -3,7 +3,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Chip, Hint, KV, NodeCard, Section } from '@/components/kit';
 import { BarChart, Donut, HBars, Punchcard } from '@/components/charts';
 import { Avatar, TechIcon } from '@/components/avatars';
-import { useState } from 'react';
+import { useSettings } from '../lib/settings';
 import { useApi, useLive } from '../lib/api';
 import { useT } from '../lib/i18n';
 import { relativeTime, shortDate } from '../lib/format';
@@ -53,43 +53,6 @@ function heatLevel(count: number, max: number): number {
   return Math.min(4, Math.ceil((count / max) * 4));
 }
 
-const PHOTOS_KEY = 'gityx.githubPhotos';
-
-function readPhotos(): boolean {
-  try {
-    return localStorage.getItem(PHOTOS_KEY) === '1';
-  } catch {
-    return false;
-  }
-}
-
-/** Opt-in: loading GitHub photos sends the authors' e-mails and your IP to GitHub, so it starts off. */
-function PhotosToggle({ on, onChange }: { on: boolean; onChange(v: boolean): void }) {
-  const t = useT();
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={on}
-      title={t('Busca as fotos em avatars.githubusercontent.com: o GitHub recebe os e-mails dos autores e o seu IP.')}
-      onClick={() => {
-        try {
-          localStorage.setItem(PHOTOS_KEY, on ? '0' : '1');
-        } catch {
-          // storage blocked: the choice lasts for this page only
-        }
-        onChange(!on);
-      }}
-      className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground"
-    >
-      <span className={`relative h-3.5 w-6 rounded-full transition-colors ${on ? 'bg-info' : 'bg-muted ring-1 ring-border'}`}>
-        <span className={`absolute top-0.5 size-2.5 rounded-full bg-white transition-all ${on ? 'left-3' : 'left-0.5'}`} />
-      </span>
-      {t('Fotos do GitHub')}
-    </button>
-  );
-}
-
 function Panel({ children, className = '' }: { children: ReactNode; className?: string }) {
   return <div className={`min-w-0 rounded-md border bg-surface ${className}`}>{children}</div>;
 }
@@ -106,7 +69,7 @@ function Kpi({ label, value, sub }: { label: string; value: ReactNode; sub?: Rea
 
 export function Dashboard() {
   const t = useT();
-  const [photos, setPhotos] = useState(readPhotos);
+  const { photos } = useSettings();
   const { data, error, reload } = useApi<Data>('/api/dashboard');
   const stats = useApi<Stats>('/api/stats');
   useLive((type) => {
@@ -279,7 +242,7 @@ export function Dashboard() {
         </Panel>
 
         <Panel>
-          <Section title={t('Quem mais comitou')} count={data.authors.length} action={<PhotosToggle on={photos} onChange={setPhotos} />}>
+          <Section title={t('Quem mais comitou')} count={data.authors.length}>
             {data.authors.length ? (
               <ul className="space-y-2.5">
                 {data.authors.map((a) => (

@@ -1,5 +1,6 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { Dashboard } from './Dashboard';
+import { SettingsProvider } from '../lib/settings';
 import type { Dashboard as Data } from '../../server/shared/types';
 
 const data: Data = {
@@ -29,6 +30,14 @@ beforeEach(() => {
 });
 
 describe('Dashboard', () => {
+  it('shows GitHub photos only when enabled in settings', async () => {
+    localStorage.setItem('gityx.githubPhotos', '1');
+    const { container } = render(<SettingsProvider><Dashboard /></SettingsProvider>);
+    await screen.findByText('Ana Souza');
+    expect(container.querySelector('img')!.getAttribute('src')).toBe('https://avatars.githubusercontent.com/u/42?s=64');
+    localStorage.removeItem('gityx.githubPhotos');
+  });
+
   it('summarizes the repository', async () => {
     const { container } = render(<Dashboard />);
     expect(await screen.findByText('main')).toBeInTheDocument();
@@ -53,9 +62,6 @@ describe('Dashboard', () => {
     // photos are off by default: initials only, nothing requested from GitHub
     expect(screen.getByText('AS')).toBeInTheDocument();
     expect(container.querySelector('img')).toBeNull();
-    fireEvent.click(screen.getByRole('switch', { name: 'Fotos do GitHub' }));
-    expect(container.querySelector('img')!.getAttribute('src')).toBe('https://avatars.githubusercontent.com/u/42?s=64');
-    expect(localStorage.getItem('gityx.githubPhotos')).toBe('1');
-    localStorage.removeItem('gityx.githubPhotos');
+
   });
 });
