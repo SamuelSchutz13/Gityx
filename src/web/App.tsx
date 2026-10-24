@@ -46,7 +46,7 @@ export function App() {
     <FrameCtx.Provider value={{ view, onNavigate: (v) => (location.hash = v), repo: info.data?.repo, branch: dash.data?.branch, status }}>
       {view === 'history' ? <History />
         : view === 'changes' ? <Changes tree={tree} />
-        : view === 'tests' ? <Frame><Tests /></Frame>
+        : view === 'tests' ? <Tests />
         : view === 'export' ? <Frame><Export /></Frame>
         : <Frame right={tree}><Dashboard /></Frame>}
       <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>

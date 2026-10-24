@@ -33,7 +33,7 @@ describe('App', () => {
     render(<App />);
     expect(await screen.findByText(marker)).toBeInTheDocument();
     expect(await screen.findByText('demo')).toBeInTheDocument();
-    expect(await screen.findByText('2 arquivos alterados')).toBeInTheDocument();
+    expect((await screen.findAllByText('2 arquivos alterados')).length).toBeGreaterThan(0);
     await act(async () => {});
   });
 });

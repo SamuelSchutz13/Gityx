@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { CheckCircle2, CircleDashed, CircleSlash, Loader2, MinusCircle, XCircle } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { CheckCircle2, CircleDashed, CircleSlash, FlaskConical, Loader2, MinusCircle, XCircle } from 'lucide-react';
+import { Chip, Empty, Hint } from '@/components/kit';
+import { Frame } from './Frame';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle } from '@/components/ui/dialog';
 import { api, ApiError, useApi } from '../lib/api';
@@ -51,64 +52,75 @@ export function Tests() {
   };
 
   const running = run?.status === 'running';
+  const tone = (st: TestStatus) => (st === 'passed' ? 'success' : st === 'failed' || st === 'error' ? 'danger' : st === 'running' ? 'info' : 'neutral');
+
+  const left = {
+    title: `Projetos · ${projects.data?.length ?? 0}`,
+    width: 300,
+    content: (
+      <div>
+        {projects.error && <p className="p-3 text-sm text-destructive">{projects.error.message}</p>}
+        {projects.data && !projects.data.length && (
+          <p className="p-3 text-sm text-muted-foreground">Nenhum projeto de teste encontrado (Jest, Vitest, script test, Go ou .gityx.json).</p>
+        )}
+        <ul className="py-1">
+          {projects.data?.map((p) => (
+            <li key={p.name} className="flex items-center gap-2 px-3 py-1.5">
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-[13px]">{p.name}</span>
+                <span className="block truncate font-mono text-[11px] text-muted-foreground">{p.dir}</span>
+              </span>
+              <Chip tone="info" upper>{p.kind}</Chip>
+              <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" disabled={running} onClick={() => void start([p.name])}>Rodar</Button>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ),
+  };
 
   return (
-    <div className="space-y-4">
+    <Frame left={left}>
+    <div className="mx-auto max-w-5xl space-y-4">
       <div className="flex flex-wrap items-center gap-2">
-        <h1 className="mr-auto text-lg font-semibold">Testes</h1>
+        <Hint>Os testes rodam o código do repositório nesta máquina; a primeira execução pede confirmação.</Hint>
+        <span className="ml-auto" />
         {running && <Button variant="outline" size="sm" onClick={() => void api.post('/api/tests/cancel', {})}>Cancelar</Button>}
         <Button size="sm" disabled={running || !projects.data?.length} onClick={() => void start('all')}>Rodar todos</Button>
       </div>
       {error && <p className="text-sm text-destructive">{error}</p>}
-      {projects.error && <p className="text-sm text-destructive">{projects.error.message}</p>}
-      {projects.data && !projects.data.length && (
-        <p className="text-sm text-muted-foreground">Nenhum projeto de teste encontrado (Jest, Vitest, script test, Go ou .gityx.json).</p>
-      )}
-
-      <ul className="divide-y rounded-lg border">
-        {projects.data?.map((p) => (
-          <li key={p.name} className="flex items-center gap-2 px-3 py-2 text-sm">
-            <span className="min-w-0 flex-1 truncate">{p.name}</span>
-            <Badge variant="outline">{p.kind}</Badge>
-            <Button size="sm" variant="ghost" disabled={running} onClick={() => void start([p.name])}>Rodar</Button>
-          </li>
-        ))}
-      </ul>
+      {!run && <Empty icon={<FlaskConical className="size-8" />} title="Nenhuma execução nesta sessão">Escolha um projeto à esquerda ou rode todos.</Empty>}
 
       {run && (
         <div className="space-y-3">
-          <div className="flex items-center gap-2 text-sm">
-            <span className="font-medium">Última execução</span>
-            <Status s={run.status} />
-          </div>
           {run.projects.map((pr) => (
-            <div key={pr.project.name} className="rounded-lg border">
-              <div className="flex flex-wrap items-center gap-2 border-b px-3 py-2 text-sm">
-                <span className="font-medium">{pr.project.name}</span>
-                <Status s={pr.status} />
-                <span className="ml-auto text-xs text-muted-foreground">
+            <div key={pr.project.name} className={`rounded-md border border-l-[3px] bg-surface ${tone(pr.status) === 'success' ? 'border-l-success' : tone(pr.status) === 'danger' ? 'border-l-destructive' : tone(pr.status) === 'info' ? 'border-l-info' : 'border-l-node-border'}`}>
+              <div className="flex flex-wrap items-center gap-2 border-b px-3 py-2">
+                <span className="text-[13px] font-medium">{pr.project.name}</span>
+                <Chip tone={tone(pr.status)} upper>{LABEL[pr.status]}</Chip>
+                <span className="ml-auto font-mono text-[11px] text-muted-foreground">
                   código de saída {pr.exitCode ?? '-'} · {(pr.durationMs / 1000).toFixed(1)} s
                 </span>
               </div>
               {pr.cases === null ? (
                 <p className="px-3 py-2 text-xs text-muted-foreground">Sem contagem: comando personalizado, só código de saída e log.</p>
               ) : (
-                <ul className="max-h-80 overflow-auto px-3 py-2 text-sm">
+                <ul className="max-h-80 overflow-auto px-3 py-2 text-[13px]">
                   {pr.cases.map((c, i) => (
                     <li key={i} className="py-0.5">
                       <div className="flex items-center gap-2">
                         <Status s={c.status} />
                         <span className="min-w-0 flex-1 truncate">{c.name}</span>
                       </div>
-                      {c.message && <pre className="ml-6 mt-1 overflow-x-auto whitespace-pre-wrap text-xs text-destructive">{c.message}</pre>}
+                      {c.message && <pre className="mt-1 ml-6 overflow-x-auto text-xs whitespace-pre-wrap text-destructive">{c.message}</pre>}
                     </li>
                   ))}
                 </ul>
               )}
               {pr.log && (
                 <details className="border-t px-3 py-2">
-                  <summary className="cursor-pointer text-xs text-muted-foreground">Log completo</summary>
-                  <pre className="mt-2 max-h-96 overflow-auto whitespace-pre-wrap font-mono text-xs">{pr.log}</pre>
+                  <summary className="cursor-pointer text-[11px] font-semibold tracking-wider text-muted-foreground uppercase">Log completo</summary>
+                  <pre className="mt-2 max-h-96 overflow-auto rounded bg-background p-2 font-mono text-xs whitespace-pre-wrap">{pr.log}</pre>
                 </details>
               )}
             </div>
@@ -127,5 +139,6 @@ export function Tests() {
         </DialogContent>
       </Dialog>
     </div>
+    </Frame>
   );
 }

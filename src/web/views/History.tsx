@@ -4,11 +4,16 @@ import { Input } from '@/components/ui/input';
 import { CommitGraph, HistoryFilters } from './CommitGraph';
 import { CommitDetail } from './CommitDetail';
 import { Frame } from './Frame';
+import { useApi } from '../lib/api';
+import type { Commit } from '../../server/shared/types';
 
 export function History() {
   const [draft, setDraft] = useState<HistoryFilters>({});
   const [filters, setFilters] = useState<HistoryFilters>({});
-  const [selected, setSelected] = useState<string | null>(null);
+  const [picked, setSelected] = useState<string | null>(null);
+  // Like GitView's inspector, start with something to show: the newest commit.
+  const newest = useApi<Commit[]>('/api/history?limit=1');
+  const selected = picked ?? newest.data?.[0]?.sha ?? null;
   const field = (key: keyof HistoryFilters, label: string, type = 'text') => (
     <label className="flex flex-col gap-1 text-xs text-muted-foreground">
       {label}
@@ -39,9 +44,9 @@ export function History() {
     ),
   };
   const right = {
-    title: 'Commit',
+    title: 'Inspetor',
     width: 520,
-    content: <div className="p-3">{selected ? <CommitDetail sha={selected} /> : <p className="text-sm text-muted-foreground">Escolha um commit no grafo para ver os detalhes.</p>}</div>,
+    content: <div>{selected ? <CommitDetail key={selected} sha={selected} /> : <p className="p-3 text-sm text-muted-foreground">Escolha um commit no grafo para ver os detalhes.</p>}</div>,
   };
 
   return (

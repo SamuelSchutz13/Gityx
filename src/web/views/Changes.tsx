@@ -11,35 +11,60 @@ import type { FileDiff } from '../../server/shared/types';
 import { DiffView } from './DiffView';
 import { Frame } from './Frame';
 import type { PaneDef } from './Shell';
+import { Chip, Empty, GroupHeader, Hint } from '@/components/kit';
+import { FileCheck2 } from 'lucide-react';
+import { STATUS_CHIP } from './chips';
 
 const DOT: Record<FileDiff['status'], string> = {
   added: 'bg-success', untracked: 'bg-success', modified: 'bg-warning', renamed: 'bg-primary', deleted: 'bg-destructive',
 };
 
+const GROUPS: { title: string; match(f: FileDiff): boolean }[] = [
+  { title: 'Staged', match: (f) => f.staged },
+  { title: 'Não staged', match: (f) => !f.staged && f.status !== 'untracked' },
+  { title: 'Não rastreados', match: (f) => f.status === 'untracked' },
+];
+
 function FileList({ files, onPick }: { files: FileDiff[]; onPick(i: number): void }) {
-  if (!files.length) return <p className="p-3 text-sm text-muted-foreground">Working tree limpo.</p>;
+  const [filter, setFilter] = useState('');
+  const shown = files.map((f, i) => ({ f, i })).filter(({ f }) => f.path.toLowerCase().includes(filter.toLowerCase()));
   return (
-    <ul className="py-1">
-      {files.map((f, i) => {
-        const slash = f.path.lastIndexOf('/');
+    <div>
+      <div className="border-b p-2">
+        <Input placeholder="Filtrar arquivos..." value={filter} onChange={(e) => setFilter(e.target.value)} className="h-8 bg-background" />
+      </div>
+      {!files.length && <p className="p-3 text-sm text-muted-foreground">Working tree limpo.</p>}
+      {GROUPS.map((g) => {
+        const items = shown.filter(({ f }) => g.match(f));
+        if (!items.length) return null;
         return (
-          <li key={`${f.staged}:${f.path}`}>
-            <button type="button" onClick={() => onPick(i)} className="flex w-full items-start gap-2 px-3 py-1.5 text-left hover:bg-accent">
-              <span className={cn('mt-1.5 size-2 shrink-0 rounded-full', DOT[f.status])} aria-hidden />
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-[13px]">{f.path.slice(slash + 1)}</span>
-                <span className="block truncate font-mono text-[11px] text-muted-foreground">{slash > 0 ? f.path.slice(0, slash) : '.'}</span>
-                <span className="mt-0.5 flex gap-1 text-[11px]">
-                  {f.staged && <span className="rounded border px-1 text-fg-2">staged</span>}
-                  <span className="rounded border px-1 text-success">+{f.additions}</span>
-                  <span className="rounded border px-1 text-destructive">−{f.deletions}</span>
-                </span>
-              </span>
-            </button>
-          </li>
+          <div key={g.title}>
+            <GroupHeader title={g.title} count={items.length} />
+            <ul>
+              {items.map(({ f, i }) => {
+                const slash = f.path.lastIndexOf('/');
+                return (
+                  <li key={`${f.staged}:${f.path}`}>
+                    <button type="button" onClick={() => onPick(i)} className="flex w-full items-start gap-2 px-3 py-1.5 text-left hover:bg-accent">
+                      <span className={cn('mt-1.5 size-2 shrink-0 rounded-full', DOT[f.status])} aria-hidden />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-[13px]">{f.path.slice(slash + 1)}</span>
+                        <span className="block truncate font-mono text-[11px] text-muted-foreground">{slash > 0 ? f.path.slice(0, slash) : '.'}</span>
+                        <span className="mt-1 flex gap-1">
+                          <Chip tone={STATUS_CHIP[f.status].tone} upper>{STATUS_CHIP[f.status].label}</Chip>
+                          <Chip tone="success" mono>+{f.additions}</Chip>
+                          <Chip tone="danger" mono>−{f.deletions}</Chip>
+                        </span>
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
         );
       })}
-    </ul>
+    </div>
   );
 }
 
@@ -94,7 +119,18 @@ export function Changes({ tree }: { tree?: PaneDef }) {
           </Button>
         </div>
         {error && <p className="text-sm text-destructive">Não foi possível ler as mudanças: {error.message}</p>}
-        {loading && !data ? <Skeleton className="h-32 w-full" /> : <DiffView files={files} hits={lineHits} activeHit={query ? current : undefined} focus={focus} />}
+        {loading && !data ? (
+          <Skeleton className="h-32 w-full" />
+        ) : files.length ? (
+          <>
+            <Hint>Os diffs se atualizam sozinhos quando um arquivo muda. Clique num arquivo à esquerda para ir até ele.</Hint>
+            <DiffView files={files} hits={lineHits} activeHit={query ? current : undefined} focus={focus} defaultOpen={files.length <= 8} />
+          </>
+        ) : (
+          <Empty icon={<FileCheck2 className="size-8" />} title="Nenhuma mudança no working tree">
+            Edite um arquivo do repositório e o diff aparece aqui na hora.
+          </Empty>
+        )}
       </div>
     </Frame>
   );

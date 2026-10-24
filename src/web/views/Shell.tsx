@@ -128,7 +128,7 @@ export function Shell(props: {
 
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
         {props.left && <SidePane pane={props.left} side="left" />}
-        <main className="min-h-0 min-w-0 flex-1 overflow-auto bg-background p-4">{props.children}</main>
+        <main className="canvas-grid min-h-0 min-w-0 flex-1 overflow-auto p-4">{props.children}</main>
         {props.right && <SidePane pane={props.right} side="right" />}
       </div>
 

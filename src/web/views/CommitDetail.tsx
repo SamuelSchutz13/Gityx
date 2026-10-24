@@ -1,27 +1,85 @@
-import { Badge } from '@/components/ui/badge';
+import { useState } from 'react';
+import { Copy } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Chip, KV, Section, UnderlineTabs } from '@/components/kit';
 import { useApi } from '../lib/api';
 import { fullDate } from '../lib/format';
 import type { CommitDetail as Detail } from '../../server/shared/types';
 import { DiffView } from './DiffView';
+import { RefChip, STATUS_CHIP } from './chips';
+
+type Tab = 'overview' | 'files' | 'diff';
 
 export function CommitDetail({ sha }: { sha: string }) {
   const { data, error, loading } = useApi<Detail>(`/api/commits/${sha}`);
-  if (error) return <p className="text-sm text-destructive">Não foi possível carregar o commit: {error.message}</p>;
-  if (loading || !data) return <Skeleton className="h-24 w-full" />;
+  const [tab, setTab] = useState<Tab>('overview');
+  if (error) return <p className="p-3 text-sm text-destructive">Não foi possível carregar o commit: {error.message}</p>;
+  if (loading || !data) return <div className="p-3"><Skeleton className="h-24 w-full" /></div>;
+
+  const add = data.files.reduce((s, f) => s + f.additions, 0);
+  const del = data.files.reduce((s, f) => s + f.deletions, 0);
+
   return (
-    <div className="space-y-3">
-      <div>
-        <h2 className="text-base font-semibold">{data.subject}</h2>
-        {data.body && <pre className="mt-2 whitespace-pre-wrap font-sans text-sm text-muted-foreground">{data.body}</pre>}
-        <p className="mt-2 text-xs text-muted-foreground">
-          {data.author} &lt;{data.email}&gt; · {fullDate(data.time)} · <span className="font-mono">{data.sha.slice(0, 10)}</span>
-        </p>
-        <div className="mt-2 flex flex-wrap gap-1">
-          {data.parents.map((p) => <Badge key={p} variant="outline" className="font-mono">pai {p.slice(0, 7)}</Badge>)}
+    <div>
+      <div className="space-y-2 px-3 pt-3 pb-3">
+        <div className="flex flex-wrap gap-1">
+          <Chip tone="info" mono>{data.sha.slice(0, 7)}</Chip>
+          {data.parents.length > 1 && <Chip tone="violet" upper>merge</Chip>}
+          {data.refs.map((r) => <RefChip key={r} name={r} />)}
         </div>
+        <h2 className="text-[15px] leading-snug font-semibold">{data.subject}</h2>
+        <p className="font-mono text-xs text-muted-foreground">{data.author} · {fullDate(data.time)}</p>
+        <Button size="sm" variant="outline" className="h-7 gap-1.5 px-2 text-xs" onClick={() => void navigator.clipboard?.writeText(data.sha)}>
+          <Copy className="size-3.5" /> SHA
+        </Button>
       </div>
-      <DiffView files={data.files} />
+      <UnderlineTabs<Tab>
+        value={tab}
+        onChange={setTab}
+        tabs={[
+          { id: 'overview', label: 'Visão geral' },
+          { id: 'files', label: <>Arquivos <span className="text-muted-foreground">{data.files.length}</span></> },
+          { id: 'diff', label: 'Diff' },
+        ]}
+      />
+      {tab === 'overview' && (
+        <>
+          <Section title="Detalhes">
+            <KV
+              rows={[
+                ['Autor', `${data.author} <${data.email}>`],
+                ['Data', fullDate(data.time)],
+                ['SHA', <span className="font-mono text-xs">{data.sha}</span>],
+                ['Pais', data.parents.length ? <span className="font-mono text-xs">{data.parents.map((p) => p.slice(0, 7)).join(' ')}</span> : 'commit raiz'],
+                ['Mudanças', <span><span className="text-success">+{add}</span> <span className="text-destructive">−{del}</span> em {data.files.length} arquivos</span>],
+              ]}
+            />
+          </Section>
+          {data.body && (
+            <Section title="Mensagem">
+              <pre className="font-sans text-[13px] whitespace-pre-wrap text-fg-2">{data.body}</pre>
+            </Section>
+          )}
+        </>
+      )}
+      {tab === 'files' && (
+        <ul className="py-1">
+          {data.files.map((f) => (
+            <li key={f.path} className="flex items-center gap-2 px-3 py-1.5 text-[13px]">
+              <span className="min-w-0 flex-1 truncate font-mono text-xs">{f.path}</span>
+              <Chip tone={STATUS_CHIP[f.status].tone} upper>{STATUS_CHIP[f.status].label}</Chip>
+              <span className="font-mono text-xs text-success">+{f.additions}</span>
+              <span className="font-mono text-xs text-destructive">−{f.deletions}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+      {tab === 'diff' && (
+        <div className="p-3">
+          <DiffView files={data.files} defaultOpen />
+        </div>
+      )}
     </div>
   );
 }

@@ -1,16 +1,13 @@
 import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { cn } from 'cn';
-import { Badge } from '@/components/ui/badge';
+import { Chip } from '@/components/kit';
+import { STATUS_CHIP } from './chips';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { highlightLine } from '../lib/highlight';
 import type { FileDiff, SearchHit } from '../../server/shared/types';
 
 type Shown = FileDiff & { omitted?: boolean };
-
-const STATUS: Record<FileDiff['status'], string> = {
-  added: 'novo', modified: 'modificado', deleted: 'removido', renamed: 'renomeado', untracked: 'não rastreado',
-};
 
 const fileKey = (f: FileDiff) => `${f.staged ? 's' : 'w'}:${f.path}`;
 
@@ -81,8 +78,8 @@ function FileBlock(props: { id: string; file: Shown; open: boolean; onToggle(o: 
           {f.oldPath && <span className="text-muted-foreground">{f.oldPath} → </span>}
           {f.path}
         </span>
-        {f.staged && <Badge variant="secondary">staged</Badge>}
-        <Badge variant="outline">{STATUS[f.status]}</Badge>
+        {f.staged && <Chip upper>staged</Chip>}
+        <Chip tone={STATUS_CHIP[f.status].tone} upper>{STATUS_CHIP[f.status].label}</Chip>
         <span className="text-xs text-success">+{f.additions}</span>
         <span className="text-xs text-destructive">−{f.deletions}</span>
       </CollapsibleTrigger>

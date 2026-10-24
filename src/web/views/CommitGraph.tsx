@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { cn } from 'cn';
-import { Badge } from '@/components/ui/badge';
+import { RefChip } from './chips';
 import { Skeleton } from '@/components/ui/skeleton';
 import { api, useLive } from '../lib/api';
 import { assignLanes, GraphRow } from '../lib/graph-layout';
@@ -39,11 +39,6 @@ function Lanes({ row, width, h }: { row: GraphRow; width: number; h: number }) {
   );
 }
 
-function Ref({ name }: { name: string }) {
-  if (name.startsWith('tag: ')) return <Badge variant="outline" className="h-5 px-1.5 text-[11px]">{name.slice(5)}</Badge>;
-  if (name.startsWith('HEAD')) return <Badge className="h-5 px-1.5 text-[11px]">{name}</Badge>;
-  return <Badge variant="secondary" className="h-5 px-1.5 text-[11px]">{name}</Badge>;
-}
 
 export function CommitGraph(props: { compact?: boolean; filters?: HistoryFilters; selected?: string | null; onSelect(sha: string): void }) {
   const [commits, setCommits] = useState<Commit[]>([]);
@@ -108,11 +103,11 @@ export function CommitGraph(props: { compact?: boolean; filters?: HistoryFilters
                 type="button"
                 onClick={() => props.onSelect(row.commit.sha)}
                 title={`${row.commit.sha.slice(0, 10)} · ${row.commit.author} · ${fullDate(row.commit.time)}`}
-                className={cn('flex w-full items-center gap-2 overflow-hidden px-2 text-left text-sm hover:bg-accent', props.selected === row.commit.sha && 'bg-accent')}
+                className={cn('flex w-full items-center gap-2 overflow-hidden border-l-2 border-transparent px-2 text-left text-[13px] hover:bg-accent', props.selected === row.commit.sha && 'border-primary bg-primary/10')}
                 style={{ height: h }}
               >
                 <Lanes row={row} width={width} h={h} />
-                <span className="flex shrink-0 gap-1">{row.commit.refs.map((r) => <Ref key={r} name={r} />)}</span>
+                <span className="flex shrink-0 gap-1">{row.commit.refs.map((r) => <RefChip key={r} name={r} />)}</span>
                 <span className="min-w-0 flex-1 truncate">{row.commit.subject}</span>
                 {!props.compact && <span className="hidden shrink-0 text-xs text-muted-foreground md:inline">{row.commit.author}</span>}
                 <span className="shrink-0 font-mono text-xs text-muted-foreground">{props.compact ? relativeTime(row.commit.time) : row.commit.sha.slice(0, 7)}</span>

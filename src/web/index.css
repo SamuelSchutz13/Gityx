@@ -49,6 +49,11 @@
   --tok-num: #0550ae;
   --tok-com: #6e7781;
   --tok-builtin: #953800;
+  --canvas: #fbfbfc;
+  --canvas-grid: #eef0f3;
+  --node-fill: #ffffff;
+  --node-border: #d5dae1;
+  --info: #0969da;
 }
 
 .dark {
@@ -95,6 +100,11 @@
   --tok-num: #79c0ff;
   --tok-com: #6e7681;
   --tok-builtin: #ffa657;
+  --canvas: #0b0e12;
+  --canvas-grid: #151a21;
+  --node-fill: #161b22;
+  --node-border: #2d3540;
+  --info: #58a6ff;
 }
 
 @theme inline {
@@ -126,6 +136,10 @@
   --color-fg-2: var(--fg-2);
   --color-success: var(--success);
   --color-warning: var(--warning);
+  --color-canvas: var(--canvas);
+  --color-node: var(--node-fill);
+  --color-node-border: var(--node-border);
+  --color-info: var(--info);
   --color-diff-add: var(--diff-add);
   --color-diff-del: var(--diff-del);
 }
@@ -137,6 +151,15 @@
 .hljs-string, .hljs-regexp, .hljs-template-string, .hljs-attr-value { color: var(--tok-str); }
 .hljs-comment, .hljs-quote, .hljs-meta { color: var(--tok-com); font-style: italic; }
 .hljs-built_in, .hljs-attr, .hljs-attribute, .hljs-variable, .hljs-property, .hljs-name, .hljs-tag { color: var(--tok-builtin); }
+
+/* GitView's canvas: a faint grid behind the main area. */
+.canvas-grid {
+  background-color: var(--canvas);
+  background-image:
+    linear-gradient(var(--canvas-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--canvas-grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
 
 @layer base {
   * {
