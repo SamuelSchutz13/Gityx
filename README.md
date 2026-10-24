@@ -27,7 +27,8 @@ O `npx` roda a ferramenta sem tocar no `package.json` nem no `node_modules` do p
 - O servidor escuta só em `127.0.0.1`, numa porta aleatória.
 - A URL impressa tem um token aleatório. Sem ele nada abre; ele vira um cookie `HttpOnly; SameSite=Strict`.
 - A API recusa `Host` e `Origin` de outros sites, então uma página aberta em outra aba não consegue ler o repositório (proteção contra DNS rebinding).
-- Nenhuma requisição externa: sem telemetria, CDN, fontes remotas ou checagem de atualização. A Content-Security-Policy só permite o próprio servidor.
+- Nenhuma requisição externa: sem telemetria, CDN, fontes remotas ou checagem de atualização. A Content-Security-Policy só permite o próprio servidor. Ícones de tecnologias vêm embutidos no pacote.
+- Única exceção, desligada por padrão: o botão **Fotos do GitHub** em "Quem mais comitou" carrega os avatares de `avatars.githubusercontent.com` (o GitHub recebe os e-mails dos autores e o seu IP). Sem ele, os avatares são iniciais geradas localmente.
 - Zero IA.
 - Só leitura: nunca faz commit, checkout, stage, fetch ou push. A única ação com efeito é rodar os testes, depois da sua confirmação.
 - Na exportação, `.env`, chaves, credenciais e arquivos com tokens aparecem só com nome e contagem, a menos que você marque a opção de incluir.

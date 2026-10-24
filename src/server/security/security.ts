@@ -2,7 +2,7 @@ import { timingSafeEqual } from 'node:crypto';
 import type { NextFunction, Request, RequestHandler, Response } from 'express';
 
 const CSP =
-  "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; connect-src 'self'; " +
+  "default-src 'self'; img-src 'self' data: https://avatars.githubusercontent.com; style-src 'self' 'unsafe-inline'; connect-src 'self'; " +
   "frame-ancestors 'none'; base-uri 'none'; form-action 'none'";
 
 function sameToken(a: string | undefined, b: string): boolean {

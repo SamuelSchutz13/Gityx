@@ -6,7 +6,7 @@ export type FileStatus = 'added' | 'modified' | 'deleted' | 'renamed' | 'untrack
 export interface FileDiff { path: string; oldPath?: string; status: FileStatus; staged: boolean; binary: boolean; truncated: boolean; additions: number; deletions: number; hunks: Hunk[] }
 export interface Commit { sha: string; parents: string[]; author: string; email: string; time: number; refs: string[]; subject: string }
 export interface CommitDetail extends Commit { body: string; files: FileDiff[] }
-export interface Dashboard { branch: string | null; upstream: string | null; ahead: number; behind: number; pending: { files: number; additions: number; deletions: number }; recent: Commit[]; activity: { day: string; count: number }[]; authors: { name: string; count: number }[]; lastTest: TestRunSummary | null; stashes: number; branches: number }
+export interface Dashboard { branch: string | null; upstream: string | null; ahead: number; behind: number; pending: { files: number; additions: number; deletions: number }; recent: Commit[]; activity: { day: string; count: number }[]; authors: { name: string; count: number; email: string }[]; lastTest: TestRunSummary | null; stashes: number; branches: number }
 export type TestStatus = 'pending' | 'running' | 'passed' | 'failed' | 'skipped' | 'cancelled' | 'error';
 export interface TestProject { name: string; kind: 'jest' | 'vitest' | 'script' | 'go' | 'command'; dir: string; command?: string[] }
 export interface TestCase { name: string; file?: string; status: TestStatus; durationMs?: number; message?: string }

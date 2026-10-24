@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { Dashboard } from './Dashboard';
 import type { Dashboard as Data } from '../../server/shared/types';
 
@@ -7,7 +7,7 @@ const data: Data = {
   pending: { files: 3, additions: 10, deletions: 4 },
   recent: [{ sha: 'a'.repeat(40), parents: [], author: 'Ana', email: 'a@x', time: 1700000000, refs: [], subject: 'primeiro' }],
   activity: Array.from({ length: 84 }, (_, i) => ({ day: `d${i}`, count: i % 5 })),
-  authors: [{ name: 'Ana', count: 7 }],
+  authors: [{ name: 'Ana Souza', count: 7, email: '42+ana@users.noreply.github.com' }],
   lastTest: { status: 'passed', passed: 5, failed: 0, finishedAt: 1700000000000 },
   stashes: 1, branches: 4,
 };
@@ -35,7 +35,7 @@ describe('Dashboard', () => {
     expect(screen.getByText('origin/main')).toBeInTheDocument();
     expect(screen.getByText('↑2 ↓1')).toBeInTheDocument();
     expect(screen.getByText('primeiro')).toBeInTheDocument();
-    expect(screen.getByText('Ana')).toBeInTheDocument();
+    expect(screen.getByText('Ana Souza')).toBeInTheDocument();
     expect(container.querySelectorAll('[data-heat]')).toHaveLength(84);
     expect(await screen.findByText('v2.0.0')).toBeInTheDocument();
     expect(screen.getAllByText('.ts').length).toBe(2);
@@ -44,10 +44,18 @@ describe('Dashboard', () => {
     expect(container.querySelectorAll('[data-bar]')).toHaveLength(26);
     expect(container.querySelectorAll('[data-cell]')).toHaveLength(168);
     expect(screen.getByText('React')).toBeInTheDocument();
-    expect(screen.getByText('19.1.0')).toBeInTheDocument();
     expect(screen.getByText('Infraestrutura')).toBeInTheDocument();
     expect(screen.getByText('Funcionalidades (feat)')).toBeInTheDocument();
     expect(screen.getByText('90%')).toBeInTheDocument();
     expect(container.querySelectorAll('[data-slice]')).toHaveLength(4);
+    expect(container.querySelector('svg[data-brand="React"]')).not.toBeNull();
+    expect(screen.getByText('v19.1.0')).toBeInTheDocument();
+    // photos are off by default: initials only, nothing requested from GitHub
+    expect(screen.getByText('AS')).toBeInTheDocument();
+    expect(container.querySelector('img')).toBeNull();
+    fireEvent.click(screen.getByRole('switch', { name: 'Fotos do GitHub' }));
+    expect(container.querySelector('img')!.getAttribute('src')).toBe('https://avatars.githubusercontent.com/u/42?s=64');
+    expect(localStorage.getItem('gityx.githubPhotos')).toBe('1');
+    localStorage.removeItem('gityx.githubPhotos');
   });
 });

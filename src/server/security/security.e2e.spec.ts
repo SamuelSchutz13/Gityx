@@ -59,6 +59,13 @@ describe('server security', () => {
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ ok: true });
     expect(res.headers['content-security-policy']).toContain("default-src 'self'");
+    // GitHub photos are opt-in in the UI; only images may come from there, never scripts or fetches
+    // (directive tokens, not exact text: local proxies such as AdGuard append their own hosts)
+    const csp = String(res.headers['content-security-policy']);
+    const directive = (name: string) => (csp.split(';').map((d) => d.trim().split(/\s+/)).find((d) => d[0] === name) ?? []).slice(1);
+    expect(directive('img-src')).toEqual(expect.arrayContaining(["'self'", 'https://avatars.githubusercontent.com']));
+    expect(directive('connect-src')).not.toContain('https://avatars.githubusercontent.com');
+    expect(directive('default-src')).not.toContain('https://avatars.githubusercontent.com');
     expect(res.headers['x-content-type-options']).toBe('nosniff');
     expect(res.headers['referrer-policy']).toBe('no-referrer');
   });

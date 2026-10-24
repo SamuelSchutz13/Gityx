@@ -141,6 +141,8 @@ export const EN: Record<string, string> = {
   'Por padrão, .env, chaves, credenciais e arquivos com tokens aparecem só com nome e contagem.':
     'By default, .env, keys, credentials and files with tokens show only their name and counts.',
   'Baixar': 'Download',
+  'Fotos do GitHub': 'GitHub photos',
+  'Busca as fotos em avatars.githubusercontent.com: o GitHub recebe os e-mails dos autores e o seu IP.': "Loads photos from avatars.githubusercontent.com: GitHub receives the authors' e-mails and your IP.",
   'Nenhum projeto de teste encontrado.': 'No test project found.',
   'O Gityx reconhece sozinho Jest, Vitest, o script "test" do package.json (Mocha, AVA, node:test...), Go, pytest, cargo, dotnet, Maven, Gradle, PHPUnit e RSpec.':
     'Gityx detects Jest, Vitest, the package.json "test" script (Mocha, AVA, node:test...), Go, pytest, cargo, dotnet, Maven, Gradle, PHPUnit and RSpec by itself.',

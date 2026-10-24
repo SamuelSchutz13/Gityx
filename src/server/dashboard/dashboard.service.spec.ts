@@ -24,7 +24,7 @@ describe('DashboardService', () => {
     expect(d.recent).toHaveLength(2);
     expect(d.activity).toHaveLength(84);
     expect(d.activity[83].count).toBe(2);
-    expect(d.authors).toEqual([{ name: 'Ana', count: 2 }]);
+    expect(d.authors).toEqual([{ name: 'Ana', count: 2, email: 'ana@example.com' }]);
     expect(d.branches).toBe(1);
     expect(d.stashes).toBe(0);
     expect(d.lastTest).toBeNull();

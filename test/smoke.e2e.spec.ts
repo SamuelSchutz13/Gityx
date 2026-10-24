@@ -6,7 +6,13 @@ import { makeRepo, TempRepo } from './helpers/temp-repo';
 
 const root = join(__dirname, '..');
 // Namespace URIs and library console-message links are strings in the bundle, not requests.
-const ALLOWED = [/^http:\/\/www\.w3\.org\//, /^https:\/\/react\.dev\/errors\//, /^https:\/\/github\.com\/highlightjs\/highlight\.js\/(issues|wiki)\//];
+// GitHub avatars are the one deliberate exception: images only, and only after the viewer turns "GitHub photos" on.
+const ALLOWED = [
+  /^http:\/\/www\.w3\.org\//,
+  /^https:\/\/react\.dev\/errors\//,
+  /^https:\/\/github\.com\/highlightjs\/highlight\.js\/(issues|wiki)\//,
+  /^https:\/\/avatars\.githubusercontent\.com\/u\//,
+];
 
 describe('packaged CLI', () => {
   let repo: TempRepo;

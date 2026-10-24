@@ -2,19 +2,21 @@ import type { ReactNode } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Chip, Hint, KV, NodeCard, Section } from '@/components/kit';
 import { BarChart, Donut, HBars, Punchcard } from '@/components/charts';
+import { Avatar, TechIcon } from '@/components/avatars';
+import { useState } from 'react';
 import { useApi, useLive } from '../lib/api';
 import { useT } from '../lib/i18n';
 import { relativeTime, shortDate } from '../lib/format';
 import type { Dashboard as Data, Framework, Stats } from '../../server/shared/types';
 
-const CATEGORY: Record<Framework['category'], { label: string; dot: string }> = {
-  language: { label: 'Linguagens', dot: 'bg-info' },
-  framework: { label: 'Frameworks', dot: 'bg-[#b083f0]' },
-  data: { label: 'Dados', dot: 'bg-warning' },
-  style: { label: 'Interface e estilo', dot: 'bg-success' },
-  test: { label: 'Testes', dot: 'bg-success' },
-  build: { label: 'Build', dot: 'bg-muted-foreground' },
-  infra: { label: 'Infraestrutura', dot: 'bg-muted-foreground' },
+const CATEGORY: Record<Framework['category'], { label: string; stripe: string }> = {
+  language: { label: 'Linguagens', stripe: 'border-l-info' },
+  framework: { label: 'Frameworks', stripe: 'border-l-[#b083f0]' },
+  data: { label: 'Dados', stripe: 'border-l-warning' },
+  style: { label: 'Interface e estilo', stripe: 'border-l-success' },
+  test: { label: 'Testes', stripe: 'border-l-success' },
+  build: { label: 'Build', stripe: 'border-l-node-border' },
+  infra: { label: 'Infraestrutura', stripe: 'border-l-node-border' },
 };
 
 const COMMIT_TYPE: Record<string, string> = {
@@ -33,10 +35,10 @@ function Stack({ items }: { items: Framework[] }) {
           <div className="mb-1.5 text-xs text-muted-foreground">{t(CATEGORY[c].label)}</div>
           <div className="flex flex-wrap gap-1.5">
             {items.filter((i) => i.category === c).map((i) => (
-              <span key={i.name} title={t('Detectado em {f}', { f: i.source })} className="inline-flex h-6 items-center gap-1.5 rounded-md border border-node-border bg-node px-2 text-[13px]">
-                <span className={`size-1.5 rounded-full ${CATEGORY[c].dot}`} aria-hidden />
-                {i.name}
-                {i.version && <span className="font-mono text-[11px] text-muted-foreground">{i.version}</span>}
+              <span key={i.name} title={t('Detectado em {f}', { f: i.source })} className={`inline-flex h-8 items-center gap-2 rounded-md border border-l-2 border-node-border bg-node pr-2.5 pl-2 text-[13px] ${CATEGORY[c].stripe}`}>
+                <TechIcon name={i.name} className="size-4" />
+                <span className="font-medium">{i.name}</span>
+                {i.version && <span className="rounded bg-muted px-1 font-mono text-[11px] text-fg-2">v{i.version}</span>}
               </span>
             ))}
           </div>
@@ -49,6 +51,43 @@ function Stack({ items }: { items: Framework[] }) {
 function heatLevel(count: number, max: number): number {
   if (!count) return 0;
   return Math.min(4, Math.ceil((count / max) * 4));
+}
+
+const PHOTOS_KEY = 'gityx.githubPhotos';
+
+function readPhotos(): boolean {
+  try {
+    return localStorage.getItem(PHOTOS_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+/** Opt-in: loading GitHub photos sends the authors' e-mails and your IP to GitHub, so it starts off. */
+function PhotosToggle({ on, onChange }: { on: boolean; onChange(v: boolean): void }) {
+  const t = useT();
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={on}
+      title={t('Busca as fotos em avatars.githubusercontent.com: o GitHub recebe os e-mails dos autores e o seu IP.')}
+      onClick={() => {
+        try {
+          localStorage.setItem(PHOTOS_KEY, on ? '0' : '1');
+        } catch {
+          // storage blocked: the choice lasts for this page only
+        }
+        onChange(!on);
+      }}
+      className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground"
+    >
+      <span className={`relative h-3.5 w-6 rounded-full transition-colors ${on ? 'bg-info' : 'bg-muted ring-1 ring-border'}`}>
+        <span className={`absolute top-0.5 size-2.5 rounded-full bg-white transition-all ${on ? 'left-3' : 'left-0.5'}`} />
+      </span>
+      {t('Fotos do GitHub')}
+    </button>
+  );
 }
 
 function Panel({ children, className = '' }: { children: ReactNode; className?: string }) {
@@ -67,6 +106,7 @@ function Kpi({ label, value, sub }: { label: string; value: ReactNode; sub?: Rea
 
 export function Dashboard() {
   const t = useT();
+  const [photos, setPhotos] = useState(readPhotos);
   const { data, error, reload } = useApi<Data>('/api/dashboard');
   const stats = useApi<Stats>('/api/stats');
   useLive((type) => {
@@ -239,9 +279,24 @@ export function Dashboard() {
         </Panel>
 
         <Panel>
-          <Section title={t('Quem mais comitou')} count={data.authors.length}>
+          <Section title={t('Quem mais comitou')} count={data.authors.length} action={<PhotosToggle on={photos} onChange={setPhotos} />}>
             {data.authors.length ? (
-              <HBars rows={data.authors.map((a) => ({ key: a.name, label: a.name, value: a.count }))} />
+              <ul className="space-y-2.5">
+                {data.authors.map((a) => (
+                  <li key={a.name} className="flex items-center gap-2.5">
+                    <Avatar name={a.name} email={a.email} remote={photos} className="size-7" />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-baseline justify-between gap-2 text-[13px]">
+                        <span className="truncate">{a.name}</span>
+                        <span className="font-mono text-xs text-muted-foreground">{a.count}</span>
+                      </div>
+                      <div className="mt-1 h-1.5 rounded-full bg-muted">
+                        <div className="h-1.5 rounded-full bg-info" style={{ width: `${(a.count / data.authors[0].count) * 100}%` }} />
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
             ) : (
               <p className="text-sm text-muted-foreground">{t('nenhum commit')}</p>
             )}
