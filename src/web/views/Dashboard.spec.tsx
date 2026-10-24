@@ -19,6 +19,11 @@ beforeEach(() => {
     hotFiles: [{ path: 'src/app.ts', changes: 9 }],
     weekly: Array.from({ length: 26 }, (_, i) => ({ week: `2026-0${1 + (i % 9)}-01`, count: i })),
     punchcard: Array.from({ length: 7 }, () => Array(24).fill(0)),
+    linesByLanguage: [{ name: 'ts', lines: 900 }, { name: 'css', lines: 100 }],
+    totalLines: 1000,
+    merges: 4,
+    commitTypes: [{ type: 'feat', count: 6 }, { type: 'fix', count: 2 }],
+    frameworks: [{ name: 'React', version: '19.1.0', category: 'framework', source: 'package.json' }, { name: 'Docker', category: 'infra', source: 'Dockerfile' }],
   };
   globalThis.fetch = jest.fn(async (url: string) => ({ ok: true, status: 200, text: async () => JSON.stringify(url === '/api/stats' ? stats : data) })) as any;
 });
@@ -33,10 +38,16 @@ describe('Dashboard', () => {
     expect(screen.getByText('Ana')).toBeInTheDocument();
     expect(container.querySelectorAll('[data-heat]')).toHaveLength(84);
     expect(await screen.findByText('v2.0.0')).toBeInTheDocument();
-    expect(screen.getByText('.ts')).toBeInTheDocument();
+    expect(screen.getAllByText('.ts').length).toBe(2);
     expect(screen.getByText('outros')).toBeInTheDocument();
     expect(screen.getByText('src/app.ts')).toBeInTheDocument();
     expect(container.querySelectorAll('[data-bar]')).toHaveLength(26);
     expect(container.querySelectorAll('[data-cell]')).toHaveLength(168);
+    expect(screen.getByText('React')).toBeInTheDocument();
+    expect(screen.getByText('19.1.0')).toBeInTheDocument();
+    expect(screen.getByText('Infraestrutura')).toBeInTheDocument();
+    expect(screen.getByText('Funcionalidades (feat)')).toBeInTheDocument();
+    expect(screen.getByText('90%')).toBeInTheDocument();
+    expect(container.querySelectorAll('[data-slice]')).toHaveLength(4);
   });
 });

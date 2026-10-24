@@ -25,4 +25,18 @@ export interface Stats {
   weekly: { week: string; count: number }[];
   /** [weekday 0=Sunday][hour] commit counts over the last year */
   punchcard: number[][];
+  /** lines of tracked text files, by extension (top 7 + __other__) */
+  linesByLanguage: { name: string; lines: number }[];
+  totalLines: number;
+  merges: number;
+  /** conventional-commit type of last year's subjects: feat, fix, docs... plus merge and other */
+  commitTypes: { type: string; count: number }[];
+  frameworks: Framework[];
+}
+export interface Framework {
+  name: string;
+  version?: string;
+  category: 'language' | 'framework' | 'data' | 'style' | 'test' | 'build' | 'infra';
+  /** manifest the detection came from */
+  source: string;
 }

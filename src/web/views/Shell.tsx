@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, Download, FileDiff, FlaskConical, GitBranch,
 import { cn } from 'cn';
 import { toggleTheme } from '../lib/theme';
 import { useLang } from '../lib/i18n';
+import { FlagBR, FlagUS } from '@/components/flags';
 
 export type View = 'overview' | 'changes' | 'history' | 'tests' | 'export';
 
@@ -79,10 +80,16 @@ export function Shell(props: {
   return (
     <div className="flex min-h-screen flex-col lg:h-screen">
       <header className="flex h-11 shrink-0 items-center gap-3 overflow-x-auto border-b bg-surface px-3">
-        <span className="flex shrink-0 items-center gap-2 text-primary">
+        <button
+          type="button"
+          onClick={() => props.onNavigate('overview')}
+          aria-label={`Gityx: ${t('Visão geral')}`}
+          title={t('Visão geral')}
+          className="flex shrink-0 items-center gap-2 rounded-md px-1 py-0.5 text-primary hover:bg-accent"
+        >
           <GitBranch className="size-5" aria-hidden />
           <span className="font-semibold text-foreground">Gityx</span>
-        </span>
+        </button>
         {props.repo && (
           <>
             <span className="text-muted-foreground">/</span>
@@ -115,17 +122,18 @@ export function Shell(props: {
             );
           })}
         </nav>
-        <div role="group" aria-label={t('Idioma')} className="flex shrink-0 rounded-md border bg-muted p-0.5 text-[11px] font-semibold">
+        <div role="group" aria-label={t('Idioma')} className="flex shrink-0 gap-0.5 rounded-md border bg-muted p-0.5">
           {(['pt', 'en'] as const).map((l) => (
             <button
               key={l}
               type="button"
               aria-pressed={lang === l}
+              aria-label={l === 'pt' ? 'Português (Brasil)' : 'English'}
               title={l === 'pt' ? 'Português (Brasil)' : 'English'}
               onClick={() => setLang(l)}
-              className={cn('rounded px-1.5 py-0.5 text-muted-foreground hover:text-foreground', lang === l && 'bg-surface text-foreground ring-1 ring-border')}
+              className={cn('rounded px-1 py-0.5 opacity-50 grayscale-[60%] transition hover:opacity-100 hover:grayscale-0', lang === l && 'bg-surface opacity-100 ring-1 ring-border grayscale-0')}
             >
-              {l === 'pt' ? 'PT' : 'EN'}
+              {l === 'pt' ? <FlagBR className="h-3.5 w-5" /> : <FlagUS className="h-3.5 w-5" />}
             </button>
           ))}
         </div>

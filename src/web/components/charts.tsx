@@ -134,6 +134,87 @@ export function HBars({ rows, mono }: { rows: Datum[]; mono?: boolean }) {
   );
 }
 
+const MAX_SLICES = 6;
+
+/**
+ * Part-to-whole at a glance: at most 6 slices (the rest folds into "other"), fixed categorical
+ * order, 2px surface gaps between slices, and a legend with every share so color never works alone.
+ */
+export function Donut({ rows, title, otherLabel, center }: { rows: Datum[]; title: string; otherLabel: string; center?: ReactNode }) {
+  const [hover, setHover] = useState<number | null>(null);
+  const shown = rows.length > MAX_SLICES
+    ? [...rows.slice(0, MAX_SLICES - 1), { key: '__other__', label: otherLabel, value: rows.slice(MAX_SLICES - 1).reduce((s, r) => s + r.value, 0) }]
+    : rows;
+  const total = shown.reduce((s, r) => s + r.value, 0) || 1;
+  const pct = (v: number) => (v > 0 && (v / total) * 100 < 0.5 ? '<1%' : `${Math.round((v / total) * 100)}%`);
+  const R = 50;
+  const r = 32;
+  let angle = -Math.PI / 2;
+  const arcs = shown.map((row) => {
+    const a0 = angle;
+    const sweep = (row.value / total) * Math.PI * 2;
+    angle += sweep;
+    return { row, a0, a1: angle, sweep };
+  });
+  const point = (rad: number, a: number) => `${60 + rad * Math.cos(a)} ${60 + rad * Math.sin(a)}`;
+  const path = (a0: number, a1: number) => {
+    if (a1 - a0 >= Math.PI * 2 - 1e-6) a1 = a0 + Math.PI * 2 - 1e-4; // a full circle needs two arcs; nudge it
+    const large = a1 - a0 > Math.PI ? 1 : 0;
+    return `M${point(R, a0)} A${R} ${R} 0 ${large} 1 ${point(R, a1)} L${point(r, a1)} A${r} ${r} 0 ${large} 0 ${point(r, a0)} Z`;
+  };
+  const table = (
+    <table className="w-full text-xs">
+      <caption className="sr-only">{title}</caption>
+      <tbody>
+        {shown.map((row) => (
+          <tr key={row.key} className="border-b last:border-b-0">
+            <td className="py-0.5 text-muted-foreground">{row.label}</td>
+            <td className="py-0.5 text-right font-mono">{row.value}</td>
+            <td className="py-0.5 text-right font-mono">{pct(row.value)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+  return (
+    <TableToggle table={table}>
+      <div className="relative flex flex-wrap items-center gap-4" onMouseLeave={() => setHover(null)}>
+        <div className="relative size-[132px] shrink-0">
+          <svg viewBox="0 0 120 120" className="size-full" role="img" aria-label={title}>
+            {arcs.map(({ row, a0, a1 }, i) => (
+              <path
+                key={row.key}
+                data-slice
+                d={path(a0, a1)}
+                fill={`var(--series-${i + 1})`}
+                stroke="var(--surface)"
+                strokeWidth={2}
+                opacity={hover === null || hover === i ? 1 : 0.45}
+                onMouseEnter={() => setHover(i)}
+              />
+            ))}
+          </svg>
+          {center && <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-center text-[11px] leading-tight font-semibold">{center}</div>}
+        </div>
+        <ul className="min-w-0 flex-1 space-y-1">
+          {shown.map((row, i) => (
+            <li key={row.key} className={`flex items-center gap-2 text-[13px] ${hover === i ? 'text-foreground' : ''}`} onMouseEnter={() => setHover(i)}>
+              <span className="size-2.5 shrink-0 rounded-[2px]" style={{ background: `var(--series-${i + 1})` }} aria-hidden />
+              <span className="min-w-0 flex-1 truncate">{row.label}</span>
+              <span className="font-mono text-xs text-muted-foreground">{pct(row.value)}</span>
+            </li>
+          ))}
+        </ul>
+        {hover !== null && (
+          <Tooltip x={66} y={0}>
+            {`${shown[hover].label}: ${shown[hover].value} (${pct(shown[hover].value)})`}
+          </Tooltip>
+        )}
+      </div>
+    </TableToggle>
+  );
+}
+
 const DAYS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
 
 /** Weekday x hour heat grid, sequential green ramp shared with the activity calendar. */

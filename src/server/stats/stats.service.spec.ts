@@ -32,6 +32,40 @@ describe('StatsService', () => {
     repo.cleanup();
   });
 
+  it('counts lines of code, commit types, merges and frameworks', async () => {
+    const repo = await makeRepo();
+    repo.write('src/a.ts', 'a\nb\nc\n');
+    repo.write('src/b.ts', 'x\n');
+    repo.write('README.md', '# t\n\ntext\n');
+    repo.write('logo.png', Buffer.from([0, 1, 2, 0]));
+    // generated files must not count as code
+    repo.write('package-lock.json', '{\n}\n'.repeat(500));
+    repo.write('web/yarn.lock', 'x\n'.repeat(500));
+    repo.write('vendor.min.js', 'x\n'.repeat(500));
+    repo.write('package.json', JSON.stringify({ dependencies: { react: '19.0.0' } }));
+    await repo.commit('feat(ui): first screen');
+    await repo.git('checkout', '-q', '-b', 'x');
+    repo.write('src/b.ts', 'x\ny\n');
+    await repo.commit('fix: off by one');
+    await repo.git('checkout', '-q', 'main');
+    repo.write('README.md', '# t\n');
+    await repo.commit('docs: shorter readme');
+    await repo.git('merge', '-q', '--no-ff', '-m', "Merge branch 'x'", 'x');
+
+    const s = await new StatsService(new GitService(repo.dir)).get();
+    expect(s.linesByLanguage).toEqual([{ name: 'ts', lines: 5 }, { name: 'json', lines: 1 }, { name: 'md', lines: 1 }]);
+    expect(s.totalLines).toBe(7);
+    expect(s.merges).toBe(1);
+    expect(s.commitTypes).toEqual([
+      { type: 'docs', count: 1 },
+      { type: 'feat', count: 1 },
+      { type: 'fix', count: 1 },
+      { type: 'merge', count: 1 },
+    ]);
+    expect(s.frameworks.map((f) => f.name)).toEqual(['React']);
+    repo.cleanup();
+  });
+
   it('works on an empty repo', async () => {
     const repo = await makeRepo();
     const s = await new StatsService(new GitService(repo.dir)).get();

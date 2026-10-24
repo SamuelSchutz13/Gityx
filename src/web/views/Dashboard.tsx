@@ -1,11 +1,50 @@
 import type { ReactNode } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Chip, Hint, KV, NodeCard, Section } from '@/components/kit';
-import { BarChart, HBars, Punchcard } from '@/components/charts';
+import { BarChart, Donut, HBars, Punchcard } from '@/components/charts';
 import { useApi, useLive } from '../lib/api';
 import { useT } from '../lib/i18n';
 import { relativeTime, shortDate } from '../lib/format';
-import type { Dashboard as Data, Stats } from '../../server/shared/types';
+import type { Dashboard as Data, Framework, Stats } from '../../server/shared/types';
+
+const CATEGORY: Record<Framework['category'], { label: string; dot: string }> = {
+  language: { label: 'Linguagens', dot: 'bg-info' },
+  framework: { label: 'Frameworks', dot: 'bg-[#b083f0]' },
+  data: { label: 'Dados', dot: 'bg-warning' },
+  style: { label: 'Interface e estilo', dot: 'bg-success' },
+  test: { label: 'Testes', dot: 'bg-success' },
+  build: { label: 'Build', dot: 'bg-muted-foreground' },
+  infra: { label: 'Infraestrutura', dot: 'bg-muted-foreground' },
+};
+
+const COMMIT_TYPE: Record<string, string> = {
+  feat: 'Funcionalidades', fix: 'Correções', docs: 'Documentação', chore: 'Manutenção', refactor: 'Refatoração',
+  test: 'Testes', style: 'Estilo', perf: 'Performance', ci: 'CI', build: 'Build', revert: 'Reversões', merge: 'Merges', other: 'Outros',
+};
+
+function Stack({ items }: { items: Framework[] }) {
+  const t = useT();
+  if (!items.length) return <p className="text-sm text-muted-foreground">{t('Nenhum manifesto reconhecido (package.json, go.mod, requirements.txt, Cargo.toml...).')}</p>;
+  const groups = (Object.keys(CATEGORY) as Framework['category'][]).filter((c) => items.some((i) => i.category === c));
+  return (
+    <div className="grid gap-x-6 gap-y-3 sm:grid-cols-2 xl:grid-cols-3">
+      {groups.map((c) => (
+        <div key={c} className="min-w-0">
+          <div className="mb-1.5 text-xs text-muted-foreground">{t(CATEGORY[c].label)}</div>
+          <div className="flex flex-wrap gap-1.5">
+            {items.filter((i) => i.category === c).map((i) => (
+              <span key={i.name} title={t('Detectado em {f}', { f: i.source })} className="inline-flex h-6 items-center gap-1.5 rounded-md border border-node-border bg-node px-2 text-[13px]">
+                <span className={`size-1.5 rounded-full ${CATEGORY[c].dot}`} aria-hidden />
+                {i.name}
+                {i.version && <span className="font-mono text-[11px] text-muted-foreground">{i.version}</span>}
+              </span>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 function heatLevel(count: number, max: number): number {
   if (!count) return 0;
@@ -72,13 +111,56 @@ export function Dashboard() {
       </div>
 
       {s && (
-        <Panel className="grid grid-cols-2 divide-border sm:grid-cols-3 lg:grid-cols-5 lg:divide-x">
+        <Panel className="grid grid-cols-2 divide-border sm:grid-cols-4 xl:grid-cols-7 xl:divide-x">
           <Kpi label="Commits" value={s.totalCommits.toLocaleString()} />
           <Kpi label={t('Contribuidores')} value={s.contributors} />
           <Kpi label={t('Idade do repositório')} value={s.firstCommit ? relativeTime(s.firstCommit).replace(/^há |ago$/g, '').trim() : '—'} sub={s.firstCommit ? t('Primeiro commit {t}', { t: relativeTime(s.firstCommit) }) : undefined} />
           <Kpi label={t('Última tag')} value={<span className="font-mono text-base">{s.lastTag ?? t('nenhuma')}</span>} />
           <Kpi label={t('Arquivos rastreados')} value={s.trackedFiles.toLocaleString()} />
+          <Kpi label={t('Linhas de código')} value={s.totalLines.toLocaleString()} sub={t('arquivos de texto rastreados')} />
+          <Kpi label="Merges" value={s.merges.toLocaleString()} />
         </Panel>
+      )}
+
+      {s && (
+        <Panel>
+          <Section title={t('Stack do projeto')} count={s.frameworks.length}>
+            <Stack items={s.frameworks} />
+          </Section>
+        </Panel>
+      )}
+
+      {s && (
+        <div className="grid gap-3 lg:grid-cols-2">
+          <Panel>
+            <Section title={t('Linhas de código por linguagem')}>
+              {s.linesByLanguage.length ? (
+                <Donut
+                  title={t('Linhas de código por linguagem')}
+                  otherLabel={t('outros')}
+                  center={<span>{s.totalLines.toLocaleString()}<br /><span className="font-normal text-muted-foreground">{t('linhas')}</span></span>}
+                  rows={s.linesByLanguage.map((l) => ({ key: l.name, label: langName(l.name), value: l.lines }))}
+                />
+              ) : (
+                <p className="text-sm text-muted-foreground">{t('Sem dados no período.')}</p>
+              )}
+            </Section>
+          </Panel>
+          <Panel>
+            <Section title={t('Tipos de commit · último ano')}>
+              {s.commitTypes.length ? (
+                <Donut
+                  title={t('Tipos de commit · último ano')}
+                  otherLabel={t('Outros')}
+                  center={<span>{s.commitTypes.reduce((a, c) => a + c.count, 0)}<br /><span className="font-normal text-muted-foreground">commits</span></span>}
+                  rows={s.commitTypes.map((c) => ({ key: c.type, label: `${t(COMMIT_TYPE[c.type] ?? c.type)}${c.type === 'other' || c.type === 'merge' ? '' : ` (${c.type})`}`, value: c.count }))}
+                />
+              ) : (
+                <p className="text-sm text-muted-foreground">{t('Sem dados no período.')}</p>
+              )}
+            </Section>
+          </Panel>
+        </div>
       )}
 
       {s && (

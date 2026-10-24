@@ -37,6 +37,21 @@ describe('Shell', () => {
     expect(onNavigate).toHaveBeenCalledWith('changes');
   });
 
+  it('goes back to the overview from the logo', () => {
+    const onNavigate = jest.fn();
+    render(<Shell view="history" onNavigate={onNavigate}>x</Shell>);
+    fireEvent.click(screen.getByRole('button', { name: 'Gityx: Visão geral' }));
+    expect(onNavigate).toHaveBeenCalledWith('overview');
+  });
+
+  it('switches language with flag buttons', () => {
+    render(<Shell view="overview" onNavigate={() => {}}>x</Shell>);
+    const en = screen.getByRole('button', { name: 'English' });
+    expect(en.querySelector('svg')).not.toBeNull();
+    expect(screen.queryByText('EN')).toBeNull();
+    expect(screen.getByRole('button', { name: 'Português (Brasil)' })).toHaveAttribute('aria-pressed', 'true');
+  });
+
   it('collapses and restores a side pane', () => {
     render(<Shell view="overview" onNavigate={() => {}} right={{ title: 'Árvore do Git', content: <div>grafo</div> }}>x</Shell>);
     fireEvent.click(screen.getByRole('button', { name: 'Recolher Árvore do Git' }));

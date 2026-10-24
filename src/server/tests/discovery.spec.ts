@@ -1,5 +1,5 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 import { discover } from './discovery';
 import { loadConfig } from './config';
 import { emptyDir } from '../../../test/helpers/temp-repo';
@@ -30,6 +30,35 @@ describe('discover', () => {
       ['web', 'vitest'],
     ]);
   });
+  it('finds test runners of other ecosystems as commands', () => {
+    const dir = tree({
+      'py/pyproject.toml': '[tool.pytest.ini_options]\n',
+      'rs/Cargo.toml': '[package]\nname = "x"\n',
+      'net/App.Tests.csproj': '<Project/>',
+      'java/pom.xml': '<project/>',
+      'kt/build.gradle.kts': '',
+      'php/phpunit.xml': '<phpunit/>',
+      'rb/.rspec': '--require spec_helper',
+    });
+    expect(run(dir).map((p) => [p.dir, p.name, p.command])).toEqual([
+      ['java', 'java · maven', ['mvn', 'test']],
+      ['kt', 'kt · gradle', ['gradle', 'test']],
+      ['net', 'net · dotnet', ['dotnet', 'test']],
+      ['php', 'php · phpunit', ['vendor/bin/phpunit']],
+      ['py', 'py · pytest', ['python', '-m', 'pytest']],
+      ['rb', 'rb · rspec', ['bundle', 'exec', 'rspec']],
+      ['rs', 'rs · cargo', ['cargo', 'test']],
+    ]);
+    expect(run(dir).every((p) => p.kind === 'command')).toBe(true);
+  });
+
+  it('prefers the Gradle wrapper and detects pytest from requirements', () => {
+    const dir = tree({ 'gradlew': '#!/bin/sh', 'build.gradle': '', 'requirements-dev.txt': 'pytest==8.0\n' });
+    const byName = Object.fromEntries(run(dir).map((p) => [p.name, p.command]));
+    expect(byName[`${basename(dir)} · gradle`]).toEqual([process.platform === 'win32' ? 'gradlew.bat' : './gradlew', 'test']);
+    expect(byName[`${basename(dir)} · pytest`]).toEqual(['python', '-m', 'pytest']);
+  });
+
   it('ignores the npm default test script and node_modules', () => {
     const dir = tree({
       'package.json': { scripts: { test: 'echo "Error: no test specified" && exit 1' } },
