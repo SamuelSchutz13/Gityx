@@ -4,6 +4,7 @@ import { Shell, View } from './views/Shell';
 import { CommitGraph } from './views/CommitGraph';
 import { CommitDetail } from './views/CommitDetail';
 import { History } from './views/History';
+import { Changes } from './views/Changes';
 
 const VIEWS: View[] = ['overview', 'changes', 'history', 'tests', 'export'];
 const fromHash = (): View => {
@@ -22,6 +23,7 @@ export function App() {
 
   const center =
     view === 'history' ? <History />
+    : view === 'changes' ? <Changes />
     : <div className="text-sm text-muted-foreground">{view}</div>;
 
   return (

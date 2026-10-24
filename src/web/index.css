@@ -103,6 +103,19 @@
   --color-diff-del: var(--diff-del);
 }
 
+/* Syntax colors for lowlight (highlight.js class names). */
+.hljs-keyword, .hljs-selector-tag, .hljs-built_in, .hljs-type { color: oklch(0.5 0.2 300); }
+.hljs-string, .hljs-regexp, .hljs-attr-value, .hljs-template-string { color: oklch(0.5 0.13 150); }
+.hljs-comment, .hljs-quote, .hljs-meta { color: var(--muted-foreground); font-style: italic; }
+.hljs-number, .hljs-literal, .hljs-symbol { color: oklch(0.55 0.15 60); }
+.hljs-title, .hljs-section, .hljs-function .hljs-title { color: oklch(0.5 0.17 255); }
+.hljs-attr, .hljs-attribute, .hljs-variable, .hljs-property, .hljs-name, .hljs-tag { color: oklch(0.55 0.17 25); }
+.dark .hljs-keyword, .dark .hljs-selector-tag, .dark .hljs-built_in, .dark .hljs-type { color: oklch(0.78 0.14 300); }
+.dark .hljs-string, .dark .hljs-regexp, .dark .hljs-attr-value, .dark .hljs-template-string { color: oklch(0.8 0.13 150); }
+.dark .hljs-number, .dark .hljs-literal, .dark .hljs-symbol { color: oklch(0.82 0.13 70); }
+.dark .hljs-title, .dark .hljs-section, .dark .hljs-function .hljs-title { color: oklch(0.78 0.12 255); }
+.dark .hljs-attr, .dark .hljs-attribute, .dark .hljs-variable, .dark .hljs-property, .dark .hljs-name, .dark .hljs-tag { color: oklch(0.78 0.14 25); }
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

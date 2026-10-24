@@ -29,9 +29,9 @@ export function searchDiffs(
     }
   };
 
-  for (const f of files) {
-    scan(f.path, { path: f.path, hunk: -1, line: -1 });
-    f.hunks.forEach((h, hi) => h.lines.forEach((l, li) => scan(l.text, { path: f.path, hunk: hi, line: li })));
+  for (const [file, f] of files.entries()) {
+    scan(f.path, { file, path: f.path, hunk: -1, line: -1 });
+    f.hunks.forEach((h, hi) => h.lines.forEach((l, li) => scan(l.text, { file, path: f.path, hunk: hi, line: li })));
     if (hits.length >= MAX_HITS) break;
   }
   return { hits, error: null };

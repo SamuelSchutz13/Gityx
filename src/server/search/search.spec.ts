@@ -14,8 +14,8 @@ describe('searchDiffs', () => {
     const { hits, error } = searchDiffs(files, 'token', off);
     expect(error).toBeNull();
     expect(hits).toEqual([
-      { path: 'src/auth.ts', hunk: 0, line: 0, start: 6, end: 11 },
-      { path: 'src/auth.ts', hunk: 0, line: 1, start: 6, end: 11 },
+      { file: 0, path: 'src/auth.ts', hunk: 0, line: 0, start: 6, end: 11 },
+      { file: 0, path: 'src/auth.ts', hunk: 0, line: 1, start: 6, end: 11 },
     ]);
   });
   it('respects case sensitivity', () => {
@@ -33,7 +33,7 @@ describe('searchDiffs', () => {
     expect(searchDiffs(files, '^', { ...off, regex: true }).hits).toEqual([]);
   });
   it('matches paths', () => {
-    expect(searchDiffs(files, 'readme', off).hits).toEqual([{ path: 'README.md', hunk: -1, line: -1, start: 0, end: 6 }]);
+    expect(searchDiffs(files, 'readme', off).hits).toEqual([{ file: 1, path: 'README.md', hunk: -1, line: -1, start: 0, end: 6 }]);
   });
   it('treats special characters literally without regex', () => {
     expect(searchDiffs([file('a', 'a.b', 'axb')], 'a.b', off).hits).toHaveLength(1);

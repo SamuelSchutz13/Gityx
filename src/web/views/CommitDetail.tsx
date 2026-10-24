@@ -3,6 +3,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useApi } from '../lib/api';
 import { fullDate } from '../lib/format';
 import type { CommitDetail as Detail } from '../../server/shared/types';
+import { DiffView } from './DiffView';
 
 export function CommitDetail({ sha }: { sha: string }) {
   const { data, error, loading } = useApi<Detail>(`/api/commits/${sha}`);
@@ -20,15 +21,7 @@ export function CommitDetail({ sha }: { sha: string }) {
           {data.parents.map((p) => <Badge key={p} variant="outline" className="font-mono">pai {p.slice(0, 7)}</Badge>)}
         </div>
       </div>
-      <ul className="divide-y rounded-md border text-sm">
-        {data.files.map((f) => (
-          <li key={f.path} className="flex items-center gap-2 px-3 py-1.5">
-            <span className="min-w-0 flex-1 truncate font-mono text-xs">{f.path}</span>
-            <span className="text-xs text-green-600 dark:text-green-400">+{f.additions}</span>
-            <span className="text-xs text-red-600 dark:text-red-400">−{f.deletions}</span>
-          </li>
-        ))}
-      </ul>
+      <DiffView files={data.files} />
     </div>
   );
 }

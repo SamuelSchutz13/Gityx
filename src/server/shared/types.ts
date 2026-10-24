@@ -13,4 +13,4 @@ export interface TestCase { name: string; file?: string; status: TestStatus; dur
 export interface ProjectRun { project: TestProject; status: TestStatus; exitCode: number | null; durationMs: number; cases: TestCase[] | null; log: string }
 export interface TestRun { id: string; status: TestStatus; startedAt: number; projects: ProjectRun[] }
 export interface TestRunSummary { status: TestStatus; passed: number; failed: number; finishedAt: number }
-export interface SearchHit { path: string; hunk: number; line: number; start: number; end: number }
+export interface SearchHit { file: number; path: string; hunk: number; line: number; start: number; end: number }
